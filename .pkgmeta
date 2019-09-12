@@ -1,0 +1,8 @@
+package-as: DrillSergeant
+enable-nolib-creation: no
+
+# Set the files to be ignored.
+# Files and directories beginning with a dot (such as .git) are automatically ignored, as is the pgkmeta file itself.
+ignore:
+    - README.md
+

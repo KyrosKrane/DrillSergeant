@@ -4,8 +4,8 @@
 ## Author: KyrosKrane Sylvanblade
 ## Notes: Identifies the rare associated with each drilling project in Mechagon
 
-## X-Curse-Project-ID: TBD
-## X-WoWI-ID: TBD
+## X-Curse-Project-ID: 341287
+## X-WoWI-ID: 25290
 
 # File revision: @file-abbreviated-hash@
 # File last updated: @file-date-iso@

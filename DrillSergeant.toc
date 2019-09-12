@@ -1,0 +1,13 @@
+## Interface: 80200
+## Title: Drill Sergeant
+## Version: @project-version@
+## Author: KyrosKrane Sylvanblade
+## Notes: Identifies the rare associated with each drilling project in Mechagon
+
+## X-Curse-Project-ID: TBD
+## X-WoWI-ID: TBD
+
+# File revision: @file-abbreviated-hash@
+# File last updated: @file-date-iso@
+
+Driller.lua

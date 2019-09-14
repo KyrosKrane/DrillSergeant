@@ -3,16 +3,16 @@
 -- Copyright (c) 2019 KyrosKrane Sylvanblade
 -- Licensed under the MIT License, as per the included file.
 
--- File revision: 5070f7d
--- File last updated: 2019-09-12T23:16:03Z
+-- File revision: @file-abbreviated-hash@
+-- File last updated: @file-date-iso@
 
 
 --#########################################
 --# Description
 --#########################################
 
--- This add-on intercepts drill rig announcements in Mechagon and updates them to include the name of the associated rare, and the drill location.
--- It also adds the name of the rare to the tooltip when mousing over them.
+-- This add-on reads drill rig announcements in Mechagon and parses them to identify the name of the associated rare, and the drill location.
+-- It also adds the name of the rare to the tooltip when mousing over a broken drill rig.
 
 
 --#########################################
@@ -20,10 +20,8 @@
 --#########################################
 
 -- Get a local reference to speed up execution.
-local _G = _G
 local string = string
 local print = print
-local setmetatable = setmetatable
 local select = select
 local type = type
 local pairs = pairs
@@ -49,7 +47,7 @@ Driller.ADDON_NAME = "Driller" -- the internal addon name for LibStub and other 
 Driller.USER_ADDON_NAME = "Drill Sergeant" -- the name displayed to the user
 
 -- The version of this add-on
-Driller.Version = "v0.2-alpha"
+Driller.Version = "@project-version@"
 
 
 -- The mobs and locs identified by each drill rig
@@ -68,9 +66,6 @@ Driller.Projects = {
 	["DR-Fake456"] = {Mob = "Auria Irondreamer", Loc = "123, 456"},
 	--["DR-Fake789"] = {Mob = "Izzy Hollyfizzle", Loc = "123, 456"},
 	--@end-alpha@
-
-
-
 } -- Driller.Projects
 
 
@@ -94,17 +89,17 @@ Driller.MobIDs = {
 } -- Driller.MobIDs
 
 
-
 --#########################################
 --# Utility Functions
 --#########################################
 
-
 -- Dumps a table into chat. Not intended for production use.
 function Driller:DumpTable(tab, indent)
+	if not Driller.DebugMode then return end
+
 	if not indent then indent = 0 end
 	if indent > 10 then
-		APR:DebugPrint("Recursion is at 11 already; aborting.")
+		Driller:DebugPrint("Recursion is at 11 already; aborting.")
 		return
 	end
 	for k, v in pairs(tab) do
@@ -116,17 +111,16 @@ function Driller:DumpTable(tab, indent)
 		end
 		if "table" == type(v) then
 			s = s .. "Item " .. k .. " is sub-table."
-			APR:DebugPrint(s)
+			Driller:DebugPrint(s)
 			indent = indent + 1
-			APR:DumpTable(v, indent)
+			Driller:DumpTable(v, indent)
 			indent = indent - 1
 		else
 			s = s .. "Item " .. k .. " is " .. tostring(v)
-			APR:DebugPrint(s)
+			Driller:DebugPrint(s)
 		end
 	end
-end -- APR:DumpTable()
-
+end -- Driller:DumpTable()
 
 
 --#########################################
@@ -163,13 +157,11 @@ function Driller:SetDebugMode(setting)
 end
 
 
-
 --#########################################
 --# Tooltip detection and management
 --#########################################
 
 -- Code in this section adapted from idTip (public domain) by silv3rwind on Curse
-
 
 -- Get the ID of an NPC being moused over
 GameTooltip:HookScript("OnTooltipSetUnit", function(self)
@@ -210,54 +202,31 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 	Driller:DebugPrint("found ID " .. NPCID)
 
 	local ProjectID = Driller.MobIDs[NPCID]
-
-	if ProjectID then
-		Driller:DebugPrint("ProjectID is " .. ProjectID)
-
-		local Project = Driller.Projects[ProjectID]
-		if not Project then
-			Driller:ChatPrint("No matching project for mob ID " .. NPCID .. ". Bad programmer, no cookie! Please inform the addon author to fix this error.")
-			return
-		end
-
-		local Mob = Project.Mob
-
-		Driller:DebugPrint("match found in MobIDs: " .. Mob)
-		GameTooltip:AddLine(ProjectID .. " opens a path to " .. Mob)
-		GameTooltip:Show()
-	else
-		Driller:DebugPrint("no match found in MobIDs")
+	if not ProjectID then
+		Driller:DebugPrint("no Project ID found in MobIDs for NPCID ".. NPCID)
+		return
 	end
+
+	Driller:DebugPrint("ProjectID is " .. ProjectID)
+
+	local Project = Driller.Projects[ProjectID]
+	if not Project then
+		Driller:ChatPrint("No matching project for mob ID " .. NPCID .. ". Bad programmer, no cookie! Please inform the addon author to fix this error.")
+		return
+	end
+
+	local Mob = Project.Mob
+
+	Driller:DebugPrint("match found in MobIDs: " .. Mob)
+	GameTooltip:AddLine(ProjectID .. " opens a path to " .. Mob)
+	GameTooltip:Show()
 
 end) -- HookScript("OnTooltipSetUnit")
 
---[===[
-Broken flame turret - xxx955
-Automated flame turret - 149879
-
-rec rig unbuilt - 150451
-defended/built - 150448
--- ]===]
 
 --#########################################
 --# Events to register and handle
 --#########################################
-
--- This event is only for debugging.
--- Note that PLAYER_LOGIN is triggered after all ADDON_LOADED events
-function Driller.Events:PLAYER_LOGIN(...)
-	Driller:DebugPrint("Got PLAYER_LOGIN event")
-end -- Driller.Events:PLAYER_LOGIN()
-
-
--- This event is for loading our saved settings.
-function Driller.Events:ADDON_LOADED(addon)
-	Driller:DebugPrint("Got ADDON_LOADED for " .. addon)
-	if addon ~= Driller.ADDON_NAME then return end
-
-	Driller:DebugPrint("Recognized myself, ready for processing on-load settings!")
-end -- Driller.Events:ADDON_LOADED()
-
 
 -- This triggers when someone joins or leaves a group, or changes their spec or role in the group.
 function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
@@ -285,15 +254,6 @@ function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 
 
 end -- Driller.Events:CHAT_MSG_MONSTER_EMOTE()
-
-
--- On-load handler for addon initialization.
-function Driller.Events:PLAYER_ENTERING_WORLD(...)
-	-- Announce our load.
-	Driller:DebugPrint("Got PLAYER_ENTERING_WORLD")
-
-end -- Driller.Events:PLAYER_ENTERING_WORLD()
-
 
 
 --#########################################

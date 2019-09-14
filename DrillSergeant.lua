@@ -61,23 +61,34 @@ Driller.Projects = {
 	["DR-JD99"] = {Mob = "Gemicide", Loc = "59.65, 67.20"},
 	["DR-TR28"] = {Mob = "Ol' Big Tusk", Loc = "56.15, 36.32"},
 	["DR-TR35"] = {Mob = "Earthbreaker Gulroc", Loc = "63.53, 25.00"},
+
+	--@alpha@
+	-- testing only
+	["DR-Fake123"] = {Mob = "Automated flame turret", Loc = "123, 456"}, -- Broken flame turret
+	["DR-Fake456"] = {Mob = "Auria Irondreamer", Loc = "123, 456"},
+	--["DR-Fake789"] = {Mob = "Izzy Hollyfizzle", Loc = "123, 456"},
+	--@end-alpha@
+
+
+
 } -- Driller.Projects
 
 
 Driller.MobIDs = {
-	[123] = "Gorged Gear-Cruncher",
-	[124] = "Caustic Mechaslime",
-	[1235] = "The Kleptoboss",
-	[1236] = "Boilburn",
-	[127] = "Gemicide",
-	[128] = "Ol' Big Tusk",
-	[123452] = "Earthbreaker Gulroc",
+	-- @TODO: Get the right IDs
+	[9000123] = "DR-CC61", -- "Gorged Gear-Cruncher"
+	[9000124] = "DR-CC73", -- "Caustic Mechaslime"
+	[9000125] = "DR-CC88", -- "The Kleptoboss"
+	[9000126] = "DR-JD41", -- "Boilburn"
+	[9000127] = "DR-JD99", -- "Gemicide"
+	[9000128] = "DR-TR28", -- "Ol' Big Tusk"
+	[9000129] = "DR-TR35", -- "Earthbreaker Gulroc"
 
 	--@alpha@
 	-- testing only
-	[154951] = "Automated flame turret (number)", -- Broken flame turret
-	[77359] = "Auria Smithlady",
-	[96362] = "Izze Coord",
+	[154951] = "DR-Fake123", -- Broken flame turret
+	[77359] = "DR-Fake456",
+	[96362] = "DR-Fake789",
 	--@end-alpha@
 
 } -- Driller.MobIDs
@@ -172,11 +183,11 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 
 	-- get details on the unit, and make sure it's not a player.
 	local guid = UnitGUID(unit) or ""
-	local id = tonumber(guid:match("-(%d+)-%x+$"), 10)
+	local NPCID = tonumber(guid:match("-(%d+)-%x+$"), 10)
 	local IsPlayer = guid:match("%a+") == "Player"
-	if IsPlayer or not id then return end
+	if IsPlayer or not NPCID then return end
 
-	if type(id) == "table" then
+	if type(NPCID) == "table" then
 		-- This branch should normally never happen.
 		-- The original version of the function had to be adaptable to many different tooltip types,
 		--   some of which could return multiple values.
@@ -184,23 +195,35 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 		-- Just in case it does, return so we don't corrupt the tooltip.
 
 		Driller:DebugPrint("found ID that's a table, dumping")
-		Driller:DumpTable(id)
+		Driller:DumpTable(NPCID)
 
-		if #id == 1 then
-			Driller:DebugPrint("Converting single-element ID table to a simple value")
-			id = id[1]
+		if #NPCID == 1 then
+			Driller:DebugPrint("Converting single-element NPCID table to a simple value")
+			NPCID = NPCID[1]
 		else
 
-			Driller:DebugPrint("Found multi-elemental table for ID. Bailing out.")
+			Driller:DebugPrint("Found multi-elemental table for NPCID. Bailing out.")
 			return
 		end
 	end
 
-	Driller:DebugPrint("found ID " .. id)
+	Driller:DebugPrint("found ID " .. NPCID)
 
-	if Driller.MobIDs[id] then
-		Driller:DebugPrint("match found in MobIDs: " .. Driller.MobIDs[id])
-		GameTooltip:AddLine(Driller.USER_ADDON_NAME .. ": Unlocks " .. Driller.MobIDs[id] .. " when activated.")
+	local ProjectID = Driller.MobIDs[NPCID]
+
+	if ProjectID then
+		Driller:DebugPrint("ProjectID is " .. ProjectID)
+
+		local Project = Driller.Projects[ProjectID]
+		if not Project then
+			Driller:ChatPrint("No matching project for mob ID " .. NPCID .. ". Bad programmer, no cookie! Please inform the addon author to fix this error.")
+			return
+		end
+
+		local Mob = Project.Mob
+
+		Driller:DebugPrint("match found in MobIDs: " .. Mob)
+		GameTooltip:AddLine(ProjectID .. " opens a path to " .. Mob)
 		GameTooltip:Show()
 	else
 		Driller:DebugPrint("no match found in MobIDs")
@@ -254,7 +277,7 @@ function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 			-- Found a proper drill message. Notify the user.
 			Driller:ChatPrint(Driller.Projects[DrillID].Mob .. " is about to spawn at location " .. Driller.Projects[DrillID].Loc .. " in one minute.")
 		else
-			Driller:ChatPrint("Unknown Drill ID " .. DrillID .. ". Please report this message and the Drill Rig message right above it to the addon author for investigation.")
+			Driller:ChatPrint("Unknown Drill ID " .. DrillID .. ". Please report this message and the Drill Rig message right above (or below) it to the addon author for investigation.")
 		end
 	else
 		Driller:DebugPrint("Not a drill message.")

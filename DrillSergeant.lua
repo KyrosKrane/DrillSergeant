@@ -1,4 +1,4 @@
--- Driller.lua
+-- DrillSergeant.lua
 -- Written by KyrosKrane Sylvanblade (kyros@kyros.info)
 -- Copyright (c) 2019 KyrosKrane Sylvanblade
 -- Licensed under the MIT License, as per the included file.
@@ -62,7 +62,10 @@ Driller.Projects = {
 
 	--@alpha@
 	-- testing only
-	["DR-Fake123"] = {Mob = "Automated flame turret", Loc = "123, 456"}, -- Broken flame turret
+	["DR-Fake872"] = {Mob = "Automated flame turret (?? from 872)", Loc = "123, 456"},
+	["DR-Fake951"] = {Mob = "Automated flame turret (?? from 951)", Loc = "123, 456"},
+	["DR-Fake952"] = {Mob = "Automated flame turret (149879 from 952)", Loc = "123, 456"},
+	["DR-Fake955"] = {Mob = "Automated flame turret (149879 from 955)", Loc = "123, 456"},
 	["DR-Fake456"] = {Mob = "Auria Irondreamer", Loc = "123, 456"},
 	--["DR-Fake789"] = {Mob = "Izzy Hollyfizzle", Loc = "123, 456"},
 	--@end-alpha@
@@ -81,7 +84,10 @@ Driller.MobIDs = {
 
 	--@alpha@
 	-- testing only
-	[154951] = "DR-Fake123", -- Broken flame turret
+	[149872] = "DR-Fake872", -- Broken flame turret
+	[154951] = "DR-Fake951", -- Broken flame turret
+	[154952] = "DR-Fake952", -- Automated flame turret (149879)
+	[154955] = "DR-Fake955", -- Automated flame turret (149879)
 	[77359] = "DR-Fake456",
 	[96362] = "DR-Fake789",
 	--@end-alpha@
@@ -184,7 +190,7 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 		-- The original version of the function had to be adaptable to many different tooltip types,
 		--   some of which could return multiple values.
 		-- But NPCs should only ever have a single ID.
-		-- Just in case it does, return so we don't corrupt the tooltip.
+		-- Just in case it does, make sure we don't corrupt the tooltip.
 
 		Driller:DebugPrint("found ID that's a table, dumping")
 		Driller:DumpTable(NPCID)

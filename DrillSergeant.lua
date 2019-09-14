@@ -3,8 +3,8 @@
 -- Copyright (c) 2019 KyrosKrane Sylvanblade
 -- Licensed under the MIT License, as per the included file.
 
--- File revision: @file-abbreviated-hash@
--- File last updated: @file-date-iso@
+-- File revision: 5070f7d
+-- File last updated: 2019-09-12T23:16:03Z
 
 
 --#########################################
@@ -49,19 +49,72 @@ Driller.ADDON_NAME = "Driller" -- the internal addon name for LibStub and other 
 Driller.USER_ADDON_NAME = "Drill Sergeant" -- the name displayed to the user
 
 -- The version of this add-on
-Driller.Version = "@project-version@"
+Driller.Version = "v0.2-alpha"
 
 
 -- The mobs and locs identified by each drill rig
 Driller.Projects = {
-   ["DR-CC61"] = {Mob = "Gorged Gear-Cruncher", Loc = "72.63 53.85"},
-   ["DR-CC73"] = {Mob = "Caustic Mechaslime", Loc = "66.40 58.84"},
-   ["DR-CC88"] = {Mob = "The Kleptoboss", Loc = "68.38 48.14"},
-   ["DR-JD41"] = {Mob = "Boilburn", Loc = "51.44 50.25"},
-   ["DR-JD99"] = {Mob = "Gemicide", Loc = "59.65 67.20"},
-   ["DR-TR28"] = {Mob = "Ol' Big Tusk", Loc = "56.15 36.32"},
-   ["DR-TR35"] = {Mob = "Earthbreaker Gulroc", Loc = "63.53 25.00"},
-}
+	["DR-CC61"] = {Mob = "Gorged Gear-Cruncher", Loc = "72.63, 53.85"},
+	["DR-CC73"] = {Mob = "Caustic Mechaslime", Loc = "66.40, 58.84"},
+	["DR-CC88"] = {Mob = "The Kleptoboss", Loc = "68.38, 48.14"},
+	["DR-JD41"] = {Mob = "Boilburn", Loc = "51.44, 50.25"},
+	["DR-JD99"] = {Mob = "Gemicide", Loc = "59.65, 67.20"},
+	["DR-TR28"] = {Mob = "Ol' Big Tusk", Loc = "56.15, 36.32"},
+	["DR-TR35"] = {Mob = "Earthbreaker Gulroc", Loc = "63.53, 25.00"},
+} -- Driller.Projects
+
+
+Driller.MobIDs = {
+	[123] = "Gorged Gear-Cruncher",
+	[124] = "Caustic Mechaslime",
+	[1235] = "The Kleptoboss",
+	[1236] = "Boilburn",
+	[127] = "Gemicide",
+	[128] = "Ol' Big Tusk",
+	[123452] = "Earthbreaker Gulroc",
+
+	--@alpha@
+	-- testing only
+	[154951] = "Automated flame turret (number)", -- Broken flame turret
+	[77359] = "Auria Smithlady",
+	[96362] = "Izze Coord",
+	--@end-alpha@
+
+} -- Driller.MobIDs
+
+
+
+--#########################################
+--# Utility Functions
+--#########################################
+
+
+-- Dumps a table into chat. Not intended for production use.
+function Driller:DumpTable(tab, indent)
+	if not indent then indent = 0 end
+	if indent > 10 then
+		APR:DebugPrint("Recursion is at 11 already; aborting.")
+		return
+	end
+	for k, v in pairs(tab) do
+		local s = ""
+		if indent > 0 then
+			for i = 0, indent do
+				s = s .. "    "
+			end
+		end
+		if "table" == type(v) then
+			s = s .. "Item " .. k .. " is sub-table."
+			APR:DebugPrint(s)
+			indent = indent + 1
+			APR:DumpTable(v, indent)
+			indent = indent - 1
+		else
+			s = s .. "Item " .. k .. " is " .. tostring(v)
+			APR:DebugPrint(s)
+		end
+	end
+end -- APR:DumpTable()
 
 
 
@@ -98,6 +151,70 @@ function Driller:SetDebugMode(setting)
 	Driller.DB.DebugMode = setting
 end
 
+
+
+--#########################################
+--# Tooltip detection and management
+--#########################################
+
+-- Code in this section adapted from idTip (public domain) by silv3rwind on Curse
+
+
+-- Get the ID of an NPC being moused over
+GameTooltip:HookScript("OnTooltipSetUnit", function(self)
+	if not isClassicWow then
+		if C_PetBattles.IsInBattle() then return end
+	end
+
+	-- Find out what unit is being moused over
+	local unit = select(2, self:GetUnit())
+	if not unit then return end
+
+	-- get details on the unit, and make sure it's not a player.
+	local guid = UnitGUID(unit) or ""
+	local id = tonumber(guid:match("-(%d+)-%x+$"), 10)
+	local IsPlayer = guid:match("%a+") == "Player"
+	if IsPlayer or not id then return end
+
+	if type(id) == "table" then
+		-- This branch should normally never happen.
+		-- The original version of the function had to be adaptable to many different tooltip types,
+		--   some of which could return multiple values.
+		-- But NPCs should only ever have a single ID.
+		-- Just in case it does, return so we don't corrupt the tooltip.
+
+		Driller:DebugPrint("found ID that's a table, dumping")
+		Driller:DumpTable(id)
+
+		if #id == 1 then
+			Driller:DebugPrint("Converting single-element ID table to a simple value")
+			id = id[1]
+		else
+
+			Driller:DebugPrint("Found multi-elemental table for ID. Bailing out.")
+			return
+		end
+	end
+
+	Driller:DebugPrint("found ID " .. id)
+
+	if Driller.MobIDs[id] then
+		Driller:DebugPrint("match found in MobIDs: " .. Driller.MobIDs[id])
+		GameTooltip:AddLine(Driller.USER_ADDON_NAME .. ": Unlocks " .. Driller.MobIDs[id] .. " when activated.")
+		GameTooltip:Show()
+	else
+		Driller:DebugPrint("no match found in MobIDs")
+	end
+
+end) -- HookScript("OnTooltipSetUnit")
+
+--[===[
+Broken flame turret - xxx955
+Automated flame turret - 149879
+
+rec rig unbuilt - 150451
+defended/built - 150448
+-- ]===]
 
 --#########################################
 --# Events to register and handle

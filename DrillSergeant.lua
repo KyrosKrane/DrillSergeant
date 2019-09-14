@@ -49,16 +49,22 @@ Driller.USER_ADDON_NAME = "Drill Sergeant" -- the name displayed to the user
 -- The version of this add-on
 Driller.Version = "@project-version@"
 
+local CHAT_GREEN = "|cff" .. "00ff00"
+local CHAT_BLUE = "|cff" .. "0066ff"
+local CHAT_RED = "|cff" .. "a00000"
+
 
 -- The mobs and locs identified by each drill rig
 Driller.Projects = {
-	["DR-CC61"] = {Mob = "Gorged Gear-Cruncher", Loc = "72.63, 53.85"},
-	["DR-CC73"] = {Mob = "Caustic Mechaslime", Loc = "66.40, 58.84"},
-	["DR-CC88"] = {Mob = "The Kleptoboss", Loc = "68.38, 48.14"},
-	["DR-JD41"] = {Mob = "Boilburn", Loc = "51.44, 50.25"},
-	["DR-JD99"] = {Mob = "Gemicide", Loc = "59.65, 67.20"},
-	["DR-TR28"] = {Mob = "Ol' Big Tusk", Loc = "56.15, 36.32"},
-	["DR-TR35"] = {Mob = "Earthbreaker Gulroc", Loc = "63.53, 25.00"},
+	["DR-CC61"] = {Mob = "Gorged Gear-Cruncher", Loc = "73.0, 54.2"}, -- loc confirmed
+	["DR-CC73"] = {Mob = "Caustic Mechaslime", Loc = "66.5, 58.8"}, -- loc confirmed
+	["DR-CC88"] = {Mob = "The Kleptoboss", Loc = "68.4, 48.1"},
+
+	["DR-JD41"] = {Mob = "Boilburn", Loc = "51.1, 50.3"}, -- loc confirmed
+	["DR-JD99"] = {Mob = "Gemicide", Loc = "59.7, 67.2"},
+
+	["DR-TR28"] = {Mob = "Ol' Big Tusk", Loc = "56.2, 36.3"},
+	["DR-TR35"] = {Mob = "Earthbreaker Gulroc", Loc = "63.2, 25.4"}, -- loc confirmed
 
 	--@alpha@
 	-- testing only
@@ -74,13 +80,18 @@ Driller.Projects = {
 
 Driller.MobIDs = {
 	-- @TODO: Get the right IDs
-	[9000123] = "DR-CC61", -- "Gorged Gear-Cruncher"
-	[9000124] = "DR-CC73", -- "Caustic Mechaslime"
-	[9000125] = "DR-CC88", -- "The Kleptoboss"
-	[9000126] = "DR-JD41", -- "Boilburn"
-	[9000127] = "DR-JD99", -- "Gemicide"
-	[9000128] = "DR-TR28", -- "Ol' Big Tusk"
-	[9000129] = "DR-TR35", -- "Earthbreaker Gulroc"
+
+	-- @TODO: Problem! the same ID is used for all three.
+	[154695] = "DR-CC61", -- "Gorged Gear-Cruncher"
+	[154695] = "DR-CC73", -- "Caustic Mechaslime"
+	[154695] = "DR-CC88", -- "The Kleptoboss"
+
+	[154933] = "DR-JD41", -- "Boilburn"
+	[154933] = "DR-JD99", -- "Gemicide"
+
+	-- @TODO: Problem! the same ID is used for both.
+	[150277] = "DR-TR28", -- "Ol' Big Tusk"
+	[150277] = "DR-TR35", -- "Earthbreaker Gulroc"
 
 	--@alpha@
 	-- testing only
@@ -91,6 +102,17 @@ Driller.MobIDs = {
 	[77359] = "DR-Fake456",
 	[96362] = "DR-Fake789",
 	--@end-alpha@
+
+--[===[
+150306 - gemicide, Gemicide, gulorc, caustic mechaslime after complete
+
+150277 - gulorc - BOTH Big Tusk and Gulroc. Problem.
+
+154933 - Gemicide -- also boilburn?! double check
+154695 - caustic mechaslime -- also gorged gearcruncher?!
+
+This drill rig becomes DR-CC73, which opens the path to [url=https://www.wowhead.com/npc=154739/caustic-mechaslime]Caustic Mechaslime[/url].
+-- ]===]
 
 } -- Driller.MobIDs
 
@@ -143,17 +165,17 @@ Driller.DebugMode = true
 
 
 -- Print debug output to the chat frame.
-function Driller:DebugPrint(...)
+function Driller:DebugPrint(msg)
 	if not Driller.DebugMode then return end
 
-	print ("|cff" .. "a00000" .. Driller.USER_ADDON_NAME .. " Debug:|r", ...)
+	DEFAULT_CHAT_FRAME:AddMessage(CHAT_RED .. Driller.USER_ADDON_NAME .. " Debug: " .. FONT_COLOR_CODE_CLOSE .. msg)
 end -- Driller:DebugPrint
 
 
 -- Print regular output to the chat frame.
-function Driller:ChatPrint(...)
-	print ("|cff" .. "0066ff" .. Driller.USER_ADDON_NAME .. ":|r", ...)
-end -- Driller:DebugPrint
+function Driller:ChatPrint(msg)
+	DEFAULT_CHAT_FRAME:AddMessage(CHAT_BLUE .. Driller.USER_ADDON_NAME .. ": " .. FONT_COLOR_CODE_CLOSE .. msg)
+end -- Driller:ChatPrint
 
 
 -- Sets the debug mode and writes the setting to the DB
@@ -205,15 +227,15 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 		end
 	end
 
-	Driller:DebugPrint("found ID " .. NPCID)
+	--Driller:DebugPrint("found ID " .. NPCID)
 
 	local ProjectID = Driller.MobIDs[NPCID]
 	if not ProjectID then
-		Driller:DebugPrint("no Project ID found in MobIDs for NPCID ".. NPCID)
+		--Driller:DebugPrint("no Project ID found in MobIDs for NPCID ".. NPCID)
 		return
 	end
 
-	Driller:DebugPrint("ProjectID is " .. ProjectID)
+	Driller:DebugPrint("NPCID is " .. NPCID ..", ProjectID is " .. ProjectID)
 
 	local Project = Driller.Projects[ProjectID]
 	if not Project then
@@ -224,7 +246,7 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 	local Mob = Project.Mob
 
 	Driller:DebugPrint("match found in MobIDs: " .. Mob)
-	GameTooltip:AddLine(ProjectID .. " opens a path to " .. Mob)
+	GameTooltip:AddLine(ProjectID .. " opens a path to " .. CHAT_GREEN .. Mob .. FONT_COLOR_CODE_CLOSE)
 	GameTooltip:Show()
 
 end) -- HookScript("OnTooltipSetUnit")
@@ -250,7 +272,7 @@ function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 			Driller:DebugPrint("loc is >>" .. Driller.Projects[DrillID].Loc .. "<<")
 
 			-- Found a proper drill message. Notify the user.
-			Driller:ChatPrint(Driller.Projects[DrillID].Mob .. " is about to spawn at location " .. Driller.Projects[DrillID].Loc .. " in one minute.")
+			Driller:ChatPrint(CHAT_GREEN .. Driller.Projects[DrillID].Mob .. FONT_COLOR_CODE_CLOSE .. " is about to spawn at location " .. Driller.Projects[DrillID].Loc .. " in one minute.")
 		else
 			Driller:ChatPrint("Unknown Drill ID " .. DrillID .. ". Please report this message and the Drill Rig message right above (or below) it to the addon author for investigation.")
 		end
@@ -273,6 +295,6 @@ end)
 
 -- Register all events for which handlers have been defined
 for k, v in pairs(Driller.Events) do
-	Driller:DebugPrint("Registering event ", k)
+	Driller:DebugPrint("Registering event " .. k)
 	Driller.Frame:RegisterEvent(k)
 end

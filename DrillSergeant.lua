@@ -61,7 +61,7 @@ local CHAT_GREEN = "|cff" .. "00ff00"
 local CHAT_BLUE = "|cff" .. "0066ff"
 local CHAT_RED = "|cff" .. "a00000"
 
-local MECHAGON_MAPID = 123 -- #TODO: Update this
+local MECHAGON_MAPID = 1462
 
 
 -- The mobs and locs identified by each drill rig
@@ -294,18 +294,18 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 
 
 		-- Find out which mob is closest
-		MobX, MobY = HBD:GetWorldCoordinatesFromZone(Driller.Projects["DR-CC61"].Loc.x, Driller.Projects["DR-CC61"].Loc.y, PinstanceID)
-		local RangeToGearCruncher = HBD:GetWorldDistance(PinstanceID, PlayerX, PlayerY, MobX, MobY)
+		MobX, MobY = HBD:GetWorldCoordinatesFromZone(Driller.Projects["DR-CC61"].Loc.x/100, Driller.Projects["DR-CC61"].Loc.y/100, MECHAGON_MAPID)
+		local RangeToGearCruncher = HBD:GetWorldDistance(MECHAGON_MAPID, PlayerX, PlayerY, MobX, MobY)
+		Driller:DebugPrint("MobX, MobY, RangeToGearCruncher is " .. MobX .. ", " .. MobY .. ", " .. RangeToGearCruncher)
 
-		MobX, MobY = HBD:GetWorldCoordinatesFromZone(Driller.Projects["DR-CC73"].Loc.x, Driller.Projects["DR-CC73"].Loc.y, PinstanceID)
-		local RangeToMechaslime = HBD:GetWorldDistance(PinstanceID, PlayerX, PlayerY, MobX, MobY)
+		MobX, MobY = HBD:GetWorldCoordinatesFromZone(Driller.Projects["DR-CC73"].Loc.x/100, Driller.Projects["DR-CC73"].Loc.y/100, MECHAGON_MAPID)
+		local RangeToMechaslime = HBD:GetWorldDistance(MECHAGON_MAPID, PlayerX, PlayerY, MobX, MobY)
+		Driller:DebugPrint("MobX, MobY, RangeToMechaslime is " .. MobX .. ", " .. MobY .. ", " .. RangeToMechaslime)
 
-		MobX, MobY = HBD:GetWorldCoordinatesFromZone(Driller.Projects["DR-CC88"].Loc.x, Driller.Projects["DR-CC88"].Loc.y, PinstanceID)
-		local RangeToKleptoboss = HBD:GetWorldDistance(PinstanceID, PlayerX, PlayerY, MobX, MobY)
+		MobX, MobY = HBD:GetWorldCoordinatesFromZone(Driller.Projects["DR-CC88"].Loc.x/100, Driller.Projects["DR-CC88"].Loc.y/100, MECHAGON_MAPID)
+		local RangeToKleptoboss = HBD:GetWorldDistance(MECHAGON_MAPID, PlayerX, PlayerY, MobX, MobY)
+		Driller:DebugPrint("MobX, MobY, RangeToKleptoboss is " .. MobX .. ", " .. MobY .. ", " .. RangeToKleptoboss)
 
-		Driller:DebugPrint("RangeToGearCruncher is " .. RangeToGearCruncher)
-		Driller:DebugPrint("RangeToMechaslime is " .. RangeToMechaslime)
-		Driller:DebugPrint("RangeToKleptoboss is " .. RangeToKleptoboss)
 		if RangeToGearCruncher < RangeToMechaslime and RangeToGearCruncher < RangeToKleptoboss then
 			Driller:DebugPrint("Picking DR-CC61 Gorged Gear-Cruncher")
 			ProjectID = "DR-CC61" -- "Gorged Gear-Cruncher"
@@ -324,17 +324,14 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 		Driller:DebugPrint("In JD block.")
 
 		-- Find out which is closer
-		MobX, MobY = HBD:GetWorldCoordinatesFromZone(Driller.Projects["DR-JD41"].Loc.x, Driller.Projects["DR-JD41"].Loc.y, PinstanceID)
-		Driller:DebugPrint("MobX is " .. MobX)
-		Driller:DebugPrint("MobY is " .. MobY)
+		MobX, MobY = HBD:GetWorldCoordinatesFromZone(Driller.Projects["DR-JD41"].Loc.x/100, Driller.Projects["DR-JD41"].Loc.y/100, MECHAGON_MAPID)
+		local RangeToBoilburn = HBD:GetWorldDistance(MECHAGON_MAPID, PlayerX, PlayerY, MobX, MobY)
+		Driller:DebugPrint("MobX, MobY, RangeToBoilburn is " .. MobX .. ", " .. MobY .. ", " .. RangeToBoilburn)
 
-		local RangeToBoilburn = HBD:GetWorldDistance(PinstanceID, PlayerX, PlayerY, MobX, MobY)
+		MobX, MobY = HBD:GetWorldCoordinatesFromZone(Driller.Projects["DR-JD99"].Loc.x/100, Driller.Projects["DR-JD99"].Loc.y/100, MECHAGON_MAPID)
+		local RangeToGemicide = HBD:GetWorldDistance(MECHAGON_MAPID, PlayerX, PlayerY, MobX, MobY)
+		Driller:DebugPrint("MobX, MobY, RangeToGemicide is " .. MobX .. ", " .. MobY .. ", " .. RangeToGemicide)
 
-		MobX, MobY = HBD:GetWorldCoordinatesFromZone(Driller.Projects["DR-JD99"].Loc.x, Driller.Projects["DR-JD99"].Loc.y, PinstanceID)
-		local RangeToGemicide = HBD:GetWorldDistance(PinstanceID, PlayerX, PlayerY, MobX, MobY)
-
-		Driller:DebugPrint("RangeToBoilburn is " .. RangeToBoilburn)
-		Driller:DebugPrint("RangeToGemicide is " .. RangeToGemicide)
 		if RangeToBoilburn < RangeToGemicide then
 			Driller:DebugPrint("Picking DR-JD41 Boilburn")
 			ProjectID = "DR-JD41" -- "Boilburn"
@@ -348,11 +345,16 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 		-- "DR-TR35", -- "Earthbreaker Gulroc"
 		Driller:DebugPrint("In TR block.")
 
-		-- Find out which is closer, BigTusk or Gulroc
-		local RangeToBigTusk = HBD:GetWorldDistance(PinstanceID, PlayerX, PlayerY, Driller.Projects["DR-TR28"].Loc.x, Driller.Projects["DR-TR28"].Loc.y)
-		local RangeToGulroc = HBD:GetWorldDistance(PinstanceID, PlayerX, PlayerY, Driller.Projects["DR-TR35"].Loc.x, Driller.Projects["DR-TR35"].Loc.y)
-		Driller:DebugPrint("RangeToBigTusk is " .. RangeToBigTusk)
-		Driller:DebugPrint("RangeToGulroc is " .. RangeToGulroc)
+		-- Find out which is closer
+		MobX, MobY = HBD:GetWorldCoordinatesFromZone(Driller.Projects["DR-TR28"].Loc.x/100, Driller.Projects["DR-TR28"].Loc.y/100, MECHAGON_MAPID)
+		local RangeToBigTusk = HBD:GetWorldDistance(MECHAGON_MAPID, PlayerX, PlayerY, MobX, MobY)
+		Driller:DebugPrint("MobX, MobY, RangeToBigTusk is " .. MobX .. ", " .. MobY .. ", " .. RangeToBigTusk)
+
+
+		MobX, MobY = HBD:GetWorldCoordinatesFromZone(Driller.Projects["DR-TR35"].Loc.x/100, Driller.Projects["DR-TR35"].Loc.y/100, MECHAGON_MAPID)
+		local RangeToGulroc = HBD:GetWorldDistance(MECHAGON_MAPID, PlayerX, PlayerY, MobX, MobY)
+		Driller:DebugPrint("MobX, MobY, RangeToGulroc is " .. MobX .. ", " .. MobY .. ", " .. RangeToGulroc)
+
 		if RangeToBigTusk < RangeToGulroc then
 			Driller:DebugPrint("Picking DR-TR28 Ol' Big Tusk")
 			ProjectID = "DR-TR28" -- "Ol' Big Tusk"

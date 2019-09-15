@@ -6,3 +6,11 @@ enable-nolib-creation: no
 ignore:
     - README.md
 
+externals:
+    # Prereqs
+    Libs/LibStub: https://repos.wowace.com/wow/libstub/trunk
+    Libs/CallbackHandler-1.0: https://repos.wowace.com/wow/callbackhandler/trunk/CallbackHandler-1.0
+
+    # HereBeDragons
+    Libs/HereBeDragons: https://repos.wowace.com/wow/herebedragons
+

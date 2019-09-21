@@ -16,6 +16,15 @@
 
 
 --#########################################
+--# Bail out on WoW Classic
+--#########################################
+
+-- Mechagon doesn't exist on WoW Classic, so if a user runs this on Classic, just return at once.
+local IsClassic = select(4, GetBuildInfo()) < 20000
+if IsClassic then return end
+
+
+--#########################################
 --# Globals and utilities
 --#########################################
 
@@ -25,10 +34,12 @@ local print = print
 local select = select
 local type = type
 local pairs = pairs
+local tostring = tostring
+local tonumber = tonumber
+
 
 -- Define a global for our namespace
 local Driller = {}
-
 
 
 --#########################################
@@ -57,41 +68,31 @@ Driller.USER_ADDON_NAME = "Drill Sergeant" -- the name displayed to the user
 -- The version of this add-on
 Driller.Version = "@project-version@"
 
+-- Colors for printing in chat.
 local CHAT_GREEN = "|cff" .. "00ff00"
 local CHAT_BLUE = "|cff" .. "0066ff"
 local CHAT_RED = "|cff" .. "a00000"
 
+-- Map ID for Mechagon, used for ensuring we're in the right zone and for calculating distances on the world map.
 local MECHAGON_MAPID = 1462
 
 
 -- The mobs and locs identified by each drill rig
 Driller.Projects = {
-	["DR-CC61"] = {Mob = "Gorged Gear-Cruncher", Loc = {x = 73.0, y = 54.2}}, -- loc confirmed
-	["DR-CC73"] = {Mob = "Caustic Mechaslime", Loc = {x = 66.5, y = 58.8}}, -- loc confirmed
+	["DR-CC61"] = {Mob = "Gorged Gear-Cruncher", Loc = {x = 73.0, y = 54.2}},
+	["DR-CC73"] = {Mob = "Caustic Mechaslime", Loc = {x = 66.5, y = 58.8}},
 	["DR-CC88"] = {Mob = "The Kleptoboss", Loc = {x = 68.4, y = 48.1}},
 
-	["DR-JD41"] = {Mob = "Boilburn", Loc = {x = 51.1, y = 50.3}}, -- loc confirmed
+	["DR-JD41"] = {Mob = "Boilburn", Loc = {x = 51.1, y = 50.3}},
 	["DR-JD99"] = {Mob = "Gemicide", Loc = {x = 59.7, y = 67.2}},
 
 	["DR-TR28"] = {Mob = "Ol' Big Tusk", Loc = {x = 56.2, y = 36.3}},
-	["DR-TR35"] = {Mob = "Earthbreaker Gulroc", Loc = {x = 63.2, y = 25.4}}, -- loc confirmed
-
-	--@alpha@
-	-- testing only
-	["DR-Fake872"] = {Mob = "Automated flame turret (?? from 872)", Loc = {x = 1, y = 2}},
-	["DR-Fake951"] = {Mob = "Automated flame turret (?? from 951)", Loc = {x = 1, y = 2}},
-	["DR-Fake952"] = {Mob = "Automated flame turret (149879 from 952)", Loc = {x = 1, y = 2}},
-	["DR-Fake955"] = {Mob = "Automated flame turret (149879 from 955)", Loc = {x = 1, y = 2}},
-	["DR-Fake456"] = {Mob = "Auria Irondreamer", Loc = {x = 1, y = 2}},
-	--["DR-Fake789"] = {Mob = "Izzy Hollyfizzle", Loc = {x = 1, y = 2}},
-	--@end-alpha@
+	["DR-TR35"] = {Mob = "Earthbreaker Gulroc", Loc = {x = 63.2, y = 25.4}},
 } -- Driller.Projects
 
 
+-- For reference only, not actually used in code any more.
 Driller.MobIDs = {
-	-- @TODO: Get the right IDs
-
-	-- @TODO: Problem! the same ID is used for all three.
 	[154695] = "DR-CC61", -- "Gorged Gear-Cruncher"
 	[154695] = "DR-CC73", -- "Caustic Mechaslime"
 	[154695] = "DR-CC88", -- "The Kleptoboss"
@@ -99,31 +100,8 @@ Driller.MobIDs = {
 	[154933] = "DR-JD41", -- "Boilburn"
 	[154933] = "DR-JD99", -- "Gemicide"
 
-	-- @TODO: Problem! the same ID is used for both.
 	[150277] = "DR-TR28", -- "Ol' Big Tusk"
 	[150277] = "DR-TR35", -- "Earthbreaker Gulroc"
-
-	--@alpha@
-	-- testing only
-	[149872] = "DR-Fake872", -- Broken flame turret
-	[154951] = "DR-Fake951", -- Broken flame turret
-	[154952] = "DR-Fake952", -- Automated flame turret (149879)
-	[154955] = "DR-Fake955", -- Automated flame turret (149879)
-	[77359] = "DR-Fake456",
-	[96362] = "DR-Fake789",
-	--@end-alpha@
-
---[===[
-150306 - gemicide, Gemicide, gulorc, caustic mechaslime after complete
-
-150277 - gulorc - BOTH Big Tusk and Gulroc. Problem.
-
-154933 - Gemicide -- also boilburn?! double check
-154695 - caustic mechaslime -- also gorged gearcruncher?!
-
-This drill rig becomes DR-CC73, which opens the path to [url=https://www.wowhead.com/npc=154739/caustic-mechaslime]Caustic Mechaslime[/url].
--- ]===]
-
 } -- Driller.MobIDs
 
 
@@ -178,7 +156,6 @@ function IsInsideTriangle(s, a, b, c)
     return true
 end -- IsInsideTriangle()
 
-
 --[===[
 -- Test case
 Gorged  = {x = 73.0, y = 54.2}
@@ -197,8 +174,7 @@ if IsInsideTriangle(outside, Gorged, Caustic, Klepto) then print "outside report
 --# Debugging setup
 --#########################################
 
--- Debug settings
--- This is needed to debug stuff before the addon loads. After the addon loads, the permanent value is stored in Driller.DB.DebugMode
+-- Debug settings. True turns on debugging output, which users shouldn't normally need to see.
 Driller.DebugMode = false
 
 --@alpha@
@@ -220,13 +196,6 @@ function Driller:ChatPrint(msg)
 end -- Driller:ChatPrint
 
 
--- Sets the debug mode and writes the setting to the DB
-function Driller:SetDebugMode(setting)
-	Driller.DebugMode = setting
-	Driller.DB.DebugMode = setting
-end
-
-
 --#########################################
 --# Tooltip detection and management
 --#########################################
@@ -235,9 +204,7 @@ end
 
 -- Get the ID of an NPC being moused over
 GameTooltip:HookScript("OnTooltipSetUnit", function(self)
-	if not isClassicWow then
-		if C_PetBattles.IsInBattle() then return end
-	end
+	if C_PetBattles.IsInBattle() then return end
 
 	-- Find out what unit is being moused over
 	local unit = select(2, self:GetUnit())
@@ -264,23 +231,18 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 			NPCID = NPCID[1]
 		else
 
-			Driller:DebugPrint("Found multi-elemental table for NPCID. Bailing out.")
+			Driller:DebugPrint("Found multi-element table for NPCID. Bailing out.")
 			return
 		end
 	end
 
-	--Driller:DebugPrint("found ID " .. NPCID)
-	if not (154695 == NPCID or 154933 == NPCID or 150277 == NPCID) then
-		-- not a tracked ID
-		--Driller:DebugPrint("Not a tracked NPC.")
-		return
-	end
-
 	-- Get player coordinates
 	local PlayerX, PlayerY, PinstanceID = HBD:GetPlayerWorldPosition()
-	Driller:DebugPrint("PlayerX is " .. PlayerX)
-	Driller:DebugPrint("PlayerY is " .. PlayerY)
-	Driller:DebugPrint("PinstanceID is " .. PinstanceID)
+	Driller:DebugPrint("PlayerX is " .. PlayerX or "nil")
+	Driller:DebugPrint("PlayerY is " .. PlayerY or "nil")
+	Driller:DebugPrint("PinstanceID is " .. PinstanceID or "nil") -- not actually used right now.
+	-- if HBD returns invalid X or Y values (usually because the client is too busy), bail out so we don't throw user errors.
+	if not PlayerX or not PlayerY then return end
 
 	local ProjectID, MobX, MobY-- used for finding the range
 
@@ -290,8 +252,6 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 		-- "DR-CC73", -- "Caustic Mechaslime"
 		-- "DR-CC88", -- "The Kleptoboss"
 		Driller:DebugPrint("In CC block.")
-
-
 
 		-- Find out which mob is closest
 		MobX, MobY = HBD:GetWorldCoordinatesFromZone(Driller.Projects["DR-CC61"].Loc.x/100, Driller.Projects["DR-CC61"].Loc.y/100, MECHAGON_MAPID)
@@ -306,10 +266,10 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 		local RangeToKleptoboss = HBD:GetWorldDistance(MECHAGON_MAPID, PlayerX, PlayerY, MobX, MobY)
 		Driller:DebugPrint("MobX, MobY, RangeToKleptoboss is " .. MobX .. ", " .. MobY .. ", " .. RangeToKleptoboss)
 
-		if RangeToGearCruncher < RangeToMechaslime and RangeToGearCruncher < RangeToKleptoboss then
+		if RangeToGearCruncher <= RangeToMechaslime and RangeToGearCruncher <= RangeToKleptoboss then
 			Driller:DebugPrint("Picking DR-CC61 Gorged Gear-Cruncher")
 			ProjectID = "DR-CC61" -- "Gorged Gear-Cruncher"
-		elseif RangeToMechaslime < RangeToGearCruncher and RangeToMechaslime < RangeToKleptoboss then
+		elseif RangeToMechaslime <= RangeToGearCruncher and RangeToMechaslime <= RangeToKleptoboss then
 			Driller:DebugPrint("Picking DR-CC73 Caustic Mechaslime")
 			ProjectID = "DR-CC73" -- "Caustic Mechaslime"
 		else
@@ -363,28 +323,24 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 			ProjectID = "DR-TR35" -- "Earthbreaker Gulroc"
 		end
 	else
-		-- This should be categorically impossible, since we already validated the ID a moment ago.
-		Driller:DebugPrint("Reached the impossible block. Fix your code, Kyros.")
+		-- not a tracked ID
+		--Driller:DebugPrint("Not a tracked NPC.")
 		return
 	end
 
-	if not ProjectID then	return	end
+	-- Make sure we got a valid project. If somehow we didn't, bail out.
+	if not ProjectID then return end
 
 	Driller:DebugPrint("NPCID is " .. NPCID ..", ProjectID is " .. ProjectID)
 
-
-
 	local Project = Driller.Projects[ProjectID]
 	if not Project then
-		Driller:ChatPrint("No matching project for mob ID " .. NPCID .. ". Bad programmer, no cookie! Please inform the addon author to fix this error.")
+		Driller:ChatPrint("No matching project for mob ID " .. NPCID .. " with project ID " .. ProjectID .. ". Bad programmer, no cookie! Please inform the addon author to fix this error.")
 		return
 	end
 
-	local Mob = Project.Mob
-	-- local Loc = Project.Loc
-
-	Driller:DebugPrint("match found in MobIDs: " .. Mob)
-	GameTooltip:AddLine(ProjectID .. " opens a path to " .. CHAT_GREEN .. Mob .. FONT_COLOR_CODE_CLOSE)
+	Driller:DebugPrint("match found in MobIDs: " .. Project.Mob)
+	GameTooltip:AddLine(ProjectID .. " opens a path to " .. CHAT_GREEN .. Project.Mob .. FONT_COLOR_CODE_CLOSE)
 	GameTooltip:Show()
 
 end) -- HookScript("OnTooltipSetUnit")
@@ -394,13 +350,15 @@ end) -- HookScript("OnTooltipSetUnit")
 --# Events to register and handle
 --#########################################
 
--- This triggers when someone joins or leaves a group, or changes their spec or role in the group.
+-- This triggers when an NPC gives an emote.
 function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 	local message, sender = ...
 	Driller:DebugPrint("Got CHAT_MSG_MONSTER_EMOTE")
 	Driller:DebugPrint("message is >>" .. message .. "<<")
 	Driller:DebugPrint("sender is >>" .. sender .. "<<")
 
+	-- Parse the message to see whether it is a drill rig announcement.
+	-- #TODO: This needs localization!
 	local DrillID = string.match(message, "Drill Rig (.*) has been activated! It will finish excavating in 1 minute.")
 
 	if DrillID then
@@ -418,8 +376,6 @@ function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 	else
 		Driller:DebugPrint("Not a drill message.")
 	end
-
-
 end -- Driller.Events:CHAT_MSG_MONSTER_EMOTE()
 
 
@@ -437,3 +393,28 @@ for k, v in pairs(Driller.Events) do
 	Driller:DebugPrint("Registering event " .. k)
 	Driller.Frame:RegisterEvent(k)
 end
+
+
+--#########################################
+--# Create command line for debug mode toggling
+--#########################################
+
+
+-- Toggle debug mode if asked
+function Driller.CommandLine(arg, ...)
+	if "DEBUG" == arg:upper() then
+		Driller.DebugMode = not Driller.DebugMode
+		if Driller.DebugMode then
+			Driller:ChatPrint("Debug mode is now " .. CHAT_GREEN .. "on" .. FONT_COLOR_CODE_CLOSE .. ".")
+		else
+			Driller:ChatPrint("Debug mode is now " .. CHAT_RED .. "off" .. FONT_COLOR_CODE_CLOSE .. ".")
+		end
+	else
+		Driller:ChatPrint("Unrecognized command: " .. arg)
+	end
+end -- Driller.CommandLine()
+
+
+-- Set the default slash command.
+SLASH_DS1 = "/ds"
+SlashCmdList.DS = function (...) Driller.CommandLine(...) end

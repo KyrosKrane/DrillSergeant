@@ -106,6 +106,57 @@ Driller.MobIDs = {
 
 
 --#########################################
+--# Localization
+--#########################################
+
+-- This bit of meta-magic makes it so that if we call L with a key that doesn't yet exist, a key is created automatically, and its value is the name of the key.  For example, if L["MyAddon"] doesn't exist, and I run print(L["MyAddon"]), the __index command causes the L table to automatically create a new key called MyAddon, and its value is set to tostring("MyAddon") -- same as the key name.
+local L = setmetatable({ }, {__index = function(t, k)
+	local v = tostring(k)
+	rawset(t, k, v)
+	return v
+end})
+
+-- The above system effectively makes it so that we don't have to define the default, English-language values.  Just set the key name as the English value.
+-- Set the default strings used here.  Other languages can override these as needed.
+
+-- In another file, you can override these strings like:
+--		if APR.locale == "deDE" then
+--			L["APR"] = "German name of APR here";
+--		end
+-- That way, it preserves the default English strings in case of a missed translation.
+
+
+-- This message captures the drill rig IDs. When localizing, ensure there's exactly one capture block in there -- the (.*) part -- which is where the actual ID would go.
+L["Drill_Rig_msg_capture"] = "Drill Rig (.*) has been activated! It will finish excavating in 1 minute."
+
+-- These translations convert the local-language drill rig names to the English equivalents so they can be correctly mapped.
+L["DR-CC61"] = "DR-CC61"
+L["DR-CC73"] = "DR-CC73"
+L["DR-CC88"] = "DR-CC88"
+L["DR-JD41"] = "DR-JD41"
+L["DR-JD99"] = "DR-JD99"
+L["DR-TR28"] = "DR-TR28"
+L["DR-TR35"] = "DR-TR35"
+
+
+
+-- Now we do something stupid.
+-- Localization is usually of the form L[English] = OtherLang. This works when you want an output message in the foreign language and you don't know in advance what that language will be.
+-- But for the drill rigs, I need to convert from the localized name back to English, so I can access the standardized data. So, I have to invert the localization table to get what I need.
+-- Essentially, I need L_inverted[OtherLang] = English.
+-- Since it's a relatively small number of rigs that isn't expected to change, I'm hard-coding the inversion. If I ever expand this addon, I need to change this to keep it maintainable.
+local DrillRigInEnglish = {}
+DrillRigInEnglish[L["DR-CC61"]] = "DR-CC61"
+DrillRigInEnglish[L["DR-CC73"]] = "DR-CC73"
+DrillRigInEnglish[L["DR-CC88"]] = "DR-CC88"
+DrillRigInEnglish[L["DR-JD41"]] = "DR-JD41"
+DrillRigInEnglish[L["DR-JD99"]] = "DR-JD99"
+DrillRigInEnglish[L["DR-TR28"]] = "DR-TR28"
+DrillRigInEnglish[L["DR-TR35"]] = "DR-TR35"
+
+
+
+--#########################################
 --# Utility Functions
 --#########################################
 
@@ -200,11 +251,24 @@ end -- Driller:ChatPrint
 --# Tooltip detection and management
 --#########################################
 
--- Code in this section adapted from idTip (public domain) by silv3rwind on Curse
+-- Code in this section is partially adapted from idTip (public domain) by silv3rwind on Curse
 
--- Get the ID of an NPC being moused over
+-- If the user mouses over a damaged drill rig, put the corresponding rare name in the tooltip.
 GameTooltip:HookScript("OnTooltipSetUnit", function(self)
+	-- Don't process if we're in a pet battle
 	if C_PetBattles.IsInBattle() then return end
+
+	-- Bail out if we're not in Mechagon.
+	local Map = C_Map.GetBestMapForUnit("player")
+	if not Map or Map ~= MECHAGON_MAPID then return end
+
+	-- Get player coordinates
+	local PlayerX, PlayerY, PinstanceID = HBD:GetPlayerWorldPosition()
+	-- PinstanceID is not used right now.
+	-- if HBD returns invalid X or Y values (usually because the client is too busy), bail out so we don't throw user errors.
+	if not PlayerX or not PlayerY then return end
+
+	Driller:DebugPrint("PlayerX is " .. (PlayerX or "nil") .. ", PlayerY is " .. (PlayerY or "nil") .. ", PinstanceID is " .. (PinstanceID or "nil"))
 
 	-- Find out what unit is being moused over
 	local unit = select(2, self:GetUnit())
@@ -212,6 +276,8 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 
 	-- get details on the unit, and make sure it's not a player.
 	local guid = UnitGUID(unit) or ""
+	Driller:DebugPrint("guid is " .. (guid or "nil"))
+
 	local NPCID = tonumber(guid:match("-(%d+)-%x+$"), 10)
 	local IsPlayer = guid:match("%a+") == "Player"
 	if IsPlayer or not NPCID then return end
@@ -236,13 +302,6 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 		end
 	end
 
-	-- Get player coordinates
-	local PlayerX, PlayerY, PinstanceID = HBD:GetPlayerWorldPosition()
-	Driller:DebugPrint("PlayerX is " .. PlayerX or "nil")
-	Driller:DebugPrint("PlayerY is " .. PlayerY or "nil")
-	Driller:DebugPrint("PinstanceID is " .. PinstanceID or "nil") -- not actually used right now.
-	-- if HBD returns invalid X or Y values (usually because the client is too busy), bail out so we don't throw user errors.
-	if not PlayerX or not PlayerY then return end
 
 	local ProjectID, MobX, MobY-- used for finding the range
 
@@ -352,17 +411,28 @@ end) -- HookScript("OnTooltipSetUnit")
 
 -- This triggers when an NPC gives an emote.
 function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
+
+	-- Bail out if we're not in Mechagon.
+	local Map = C_Map.GetBestMapForUnit("player")
+	if not Map or Map ~= MECHAGON_MAPID then return end
+
+
 	local message, sender = ...
 	Driller:DebugPrint("Got CHAT_MSG_MONSTER_EMOTE")
 	Driller:DebugPrint("message is >>" .. message .. "<<")
 	Driller:DebugPrint("sender is >>" .. sender .. "<<")
 
 	-- Parse the message to see whether it is a drill rig announcement.
-	-- #TODO: This needs localization!
-	local DrillID = string.match(message, "Drill Rig (.*) has been activated! It will finish excavating in 1 minute.")
+	local DrillID = string.match(message, L["Drill_Rig_msg_capture"])
+
 
 	if DrillID then
-		Driller:DebugPrint("Identified DrillID " .. DrillID)
+		Driller:DebugPrint("Identified localized language DrillID " .. DrillID)
+
+		-- Convert the Drill ID from its localized version to English
+		DrillID = DrillRigInEnglish[DrillID]
+		Driller:DebugPrint("Converted DrillID to English: " .. DrillID)
+
 		if Driller.Projects[DrillID] then
 			Driller:DebugPrint("mob is >>" .. Driller.Projects[DrillID].Mob .. "<<")
 			local Loc = Driller.Projects[DrillID].Loc.x .. ", " .. Driller.Projects[DrillID].Loc.y

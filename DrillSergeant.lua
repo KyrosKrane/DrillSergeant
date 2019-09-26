@@ -19,9 +19,10 @@
 --# Bail out on WoW Classic
 --#########################################
 
--- Mechagon doesn't exist on WoW Classic, so if a user runs this on Classic, just return at once.
-local IsClassic = select(4, GetBuildInfo()) < 20000
-if IsClassic then return end
+-- Mechagon doesn't exist on WoW Classic, so if a user runs this on Classic, just exit at once.
+-- for Classic: local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+-- For retail: local IsRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then return end
 
 
 --#########################################
@@ -39,7 +40,7 @@ local tonumber = tonumber
 
 
 -- Define a global for our namespace
-local Driller = {}
+local addonName, Driller = ...
 
 
 --#########################################
@@ -63,7 +64,7 @@ Driller.Frame, Driller.Events = CreateFrame("Frame"), {}
 
 -- The strings that define the addon
 Driller.ADDON_NAME = "Driller" -- the internal addon name for LibStub and other addons
-Driller.USER_ADDON_NAME = "Drill Sergeant" -- the name displayed to the user
+Driller.USER_ADDON_NAME = addonName -- the name displayed to the user
 
 -- The version of this add-on
 Driller.Version = "@project-version@"
@@ -75,6 +76,9 @@ local CHAT_RED = "|cff" .. "a00000"
 
 -- Map ID for Mechagon, used for ensuring we're in the right zone and for calculating distances on the world map.
 local MECHAGON_MAPID = 1462
+
+-- Instance ID for Mechagon, returned by GetPlayerWorldPosition() and used in mob GUIDs.
+local MECHAGON_INSTANCEID = 1643
 
 
 -- The mobs and locs identified by each drill rig
@@ -110,7 +114,7 @@ Driller.MobIDs = {
 --#########################################
 
 -- This bit of meta-magic makes it so that if we call L with a key that doesn't yet exist, a key is created automatically, and its value is the name of the key.  For example, if L["MyAddon"] doesn't exist, and I run print(L["MyAddon"]), the __index command causes the L table to automatically create a new key called MyAddon, and its value is set to tostring("MyAddon") -- same as the key name.
-local L = setmetatable({ }, {__index = function(t, k)
+Driller.L = setmetatable({ }, {__index = function(t, k)
 	local v = tostring(k)
 	rawset(t, k, v)
 	return v
@@ -120,39 +124,39 @@ end})
 -- Set the default strings used here.  Other languages can override these as needed.
 
 -- In another file, you can override these strings like:
---		if APR.locale == "deDE" then
---			L["APR"] = "German name of APR here";
+--		if locale == "deDE" then
+--			Driller.L["Drill Sergeant"] = "German name of addon here";
 --		end
 -- That way, it preserves the default English strings in case of a missed translation.
 
 
 -- This message captures the drill rig IDs. When localizing, ensure there's exactly one capture block in there -- the (.*) part -- which is where the actual ID would go.
-L["Drill_Rig_msg_capture"] = "Drill Rig (.*) has been activated! It will finish excavating in 1 minute."
+Driller.L["Drill_Rig_msg_capture"] = "Drill Rig (.*) has been activated! It will finish excavating in 1 minute."
 
 -- These translations convert the local-language drill rig names to the English equivalents so they can be correctly mapped.
-L["DR-CC61"] = "DR-CC61"
-L["DR-CC73"] = "DR-CC73"
-L["DR-CC88"] = "DR-CC88"
-L["DR-JD41"] = "DR-JD41"
-L["DR-JD99"] = "DR-JD99"
-L["DR-TR28"] = "DR-TR28"
-L["DR-TR35"] = "DR-TR35"
+Driller.L["DR-CC61"] = "DR-CC61"
+Driller.L["DR-CC73"] = "DR-CC73"
+Driller.L["DR-CC88"] = "DR-CC88"
+Driller.L["DR-JD41"] = "DR-JD41"
+Driller.L["DR-JD99"] = "DR-JD99"
+Driller.L["DR-TR28"] = "DR-TR28"
+Driller.L["DR-TR35"] = "DR-TR35"
 
 
 
 -- Now we do something stupid.
--- Localization is usually of the form L[English] = OtherLang. This works when you want an output message in the foreign language and you don't know in advance what that language will be.
+-- Localization is usually of the form Driller.L[English] = OtherLang. This works when you want an output message in the foreign language and you don't know in advance what that language will be.
 -- But for the drill rigs, I need to convert from the localized name back to English, so I can access the standardized data. So, I have to invert the localization table to get what I need.
 -- Essentially, I need L_inverted[OtherLang] = English.
 -- Since it's a relatively small number of rigs that isn't expected to change, I'm hard-coding the inversion. If I ever expand this addon, I need to change this to keep it maintainable.
 local DrillRigInEnglish = {}
-DrillRigInEnglish[L["DR-CC61"]] = "DR-CC61"
-DrillRigInEnglish[L["DR-CC73"]] = "DR-CC73"
-DrillRigInEnglish[L["DR-CC88"]] = "DR-CC88"
-DrillRigInEnglish[L["DR-JD41"]] = "DR-JD41"
-DrillRigInEnglish[L["DR-JD99"]] = "DR-JD99"
-DrillRigInEnglish[L["DR-TR28"]] = "DR-TR28"
-DrillRigInEnglish[L["DR-TR35"]] = "DR-TR35"
+DrillRigInEnglish[Driller.L["DR-CC61"]] = "DR-CC61"
+DrillRigInEnglish[Driller.L["DR-CC73"]] = "DR-CC73"
+DrillRigInEnglish[Driller.L["DR-CC88"]] = "DR-CC88"
+DrillRigInEnglish[Driller.L["DR-JD41"]] = "DR-JD41"
+DrillRigInEnglish[Driller.L["DR-JD99"]] = "DR-JD99"
+DrillRigInEnglish[Driller.L["DR-TR28"]] = "DR-TR28"
+DrillRigInEnglish[Driller.L["DR-TR35"]] = "DR-TR35"
 
 
 
@@ -423,7 +427,7 @@ function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 	Driller:DebugPrint("sender is >>" .. sender .. "<<")
 
 	-- Parse the message to see whether it is a drill rig announcement.
-	local DrillID = string.match(message, L["Drill_Rig_msg_capture"])
+	local DrillID = string.match(message, Driller.L["Drill_Rig_msg_capture"])
 
 
 	if DrillID then

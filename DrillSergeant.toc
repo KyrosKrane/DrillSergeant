@@ -13,6 +13,8 @@
 # Linked from externals
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\HereBeDragons\HereBeDragons-2.0.lua
 
 # In this addon
+Utilities.lua
 DrillSergeant.lua

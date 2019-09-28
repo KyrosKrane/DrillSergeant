@@ -130,6 +130,20 @@ function addon.Utilities:DumpTable(TableToDump, indent)
 end -- addon.Utilities:DumpTable()
 
 
+-- Debugging code to see what the hell is being passed in...
+function addon.Utilities:PrintVarArgs(...)
+	if not addon.DebugMode then return end
+
+	local n = select('#', ...)
+	addon.Utilities:DebugPrint("There are " .. n .. " items in varargs.")
+	local msg
+	for i = 1, n do
+		msg = select(i, ...)
+		addon.Utilities:DebugPrint("Item " .. i .. " is " .. msg)
+	end
+end -- addon.Utilities:PrintVarArgs()
+
+
 --#########################################
 --# General utilities
 --#########################################

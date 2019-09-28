@@ -229,8 +229,7 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 			ProjectID = "DR-TR35" -- "Earthbreaker Gulroc"
 		end
 
-	--elseif 135497 == NPCID then
-	elseif 154340 == NPCID then
+	elseif 135497 == NPCID then
 		-- real mushroom that spawns Fungarian Furor
 		GameTooltip:AddLine(L["FUROR"]:format(Driller.Utilities.CHAT_GREEN .. L["Fungarian Furor"] .. FONT_COLOR_CODE_CLOSE))
 

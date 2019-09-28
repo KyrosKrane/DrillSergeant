@@ -6,10 +6,13 @@
 -- File revision: @file-abbreviated-hash@
 -- File last updated: @file-date-iso@
 
--- This file creates a bunch of utility functions, stored in the addon-specific table provided by WoW.
+-- This file creates a bunch of utility functions and constants, stored in the addon-specific table provided by WoW.
 
 local addonName, addon = ...
 if not addon.Utilities then addon.Utilities = {} end
+
+-- set a default name for the addon. The main script should override this.
+addon.USER_ADDON_NAME = addonName
 
 
 --#########################################
@@ -17,15 +20,58 @@ if not addon.Utilities then addon.Utilities = {} end
 --#########################################
 
 -- Colors for printing in chat.
-local CHAT_GREEN = "|cff" .. "00ff00"
-local CHAT_BLUE = "|cff" .. "0066ff"
-local CHAT_RED = "|cff" .. "a00000"
+addon.Utilities.FONT_COLOR_CODE_START = "|cff"
+addon.Utilities.CHAT_GREEN = addon.Utilities.FONT_COLOR_CODE_START .. "00ff00"
+addon.Utilities.CHAT_BLUE = addon.Utilities.FONT_COLOR_CODE_START .. "0066ff"
+addon.Utilities.CHAT_RED = addon.Utilities.FONT_COLOR_CODE_START .. "a00000"
+
+
+-- Easymode text coloring
+-- I considered just using WrapTextInColorCode(msg, colorcode)
+-- but this way I have the flexibility to either include the leading |cff code or not
+function addon.Utilities:Color(text, color)
+
+	-- validate the color
+	if not "string" == type(color) then
+		-- non-string color values are not understood.
+		-- just return the passed-in input unchanged.
+		return text
+	end
+
+	-- shortcut for faster lookup
+	local texttype = type(text)
+
+	-- get a printable version of the text input
+	local output
+	if "string" == texttype or "number" == texttype then
+		output = text
+	elseif "boolean" == texttype then
+		output = text and "true" or "false"
+	elseif "nil" == texttype then
+		output = ""
+	else
+		-- function, userdata, thread, and table are not handled.
+		-- Return the passed in value as-is and let the other guy deal with it...
+		return text
+	end
+
+	-- color as requested
+	if (6 == #color) then
+		-- assume no prefix, just a bare color
+		return addon.Utilities.FONT_COLOR_CODE_START .. color .. output .. FONT_COLOR_CODE_CLOSE
+	elseif (10 == #color) then
+		-- assume prefix included
+		return color .. output .. FONT_COLOR_CODE_CLOSE
+	else
+		-- unknown format for color code. Assume the caller knows what he's doing and just roll with it
+		return color .. output .. FONT_COLOR_CODE_CLOSE
+	end
+end -- addon.Utilities:Color()
 
 
 -- Print regular output to the chat frame.
 function addon.Utilities:ChatPrint(msg)
-	-- I considered changing this to use WrapTextInColorCode(msg, colorcode), but it kills readability and requires changing the chat constants everywhere.
-	DEFAULT_CHAT_FRAME:AddMessage(CHAT_BLUE .. addon.USER_ADDON_NAME .. ": " .. FONT_COLOR_CODE_CLOSE .. msg)
+	DEFAULT_CHAT_FRAME:AddMessage(addon.Utilities:Color(addon.USER_ADDON_NAME .. ": ", addon.Utilities.CHAT_BLUE) .. msg)
 end -- addon.Utilities:ChatPrint
 
 
@@ -45,7 +91,7 @@ addon.DebugMode = true
 function addon.Utilities:DebugPrint(msg)
 	if not addon.DebugMode then return end
 
-	DEFAULT_CHAT_FRAME:AddMessage(CHAT_RED .. addonName .. " Debug: " .. FONT_COLOR_CODE_CLOSE .. msg)
+	DEFAULT_CHAT_FRAME:AddMessage(addon.Utilities:Color(addon.USER_ADDON_NAME .. " Debug: ", addon.Utilities.CHAT_RED) .. msg)
 end -- addon.Utilities:DebugPrint
 
 
@@ -53,6 +99,9 @@ end -- addon.Utilities:DebugPrint
 local MAX_RECURSION_DEPTH = 10
 function addon.Utilities:DumpTable(TableToDump, indent)
 	if not addon.DebugMode then return end
+
+	local tostring = tostring
+
 
 	if not indent then indent = 0 end
 	if indent > MAX_RECURSION_DEPTH then

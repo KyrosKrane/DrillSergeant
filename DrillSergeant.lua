@@ -29,17 +29,15 @@ if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then return end
 --# Globals and utilities
 --#########################################
 
--- Get a local reference to speed up execution.
+-- Get local references to speed up execution.
 local string = string
 local print = print
 local select = select
 local type = type
 local pairs = pairs
-local tostring = tostring
 local tonumber = tonumber
 
-
--- Define a global for our namespace
+-- Grab the WoW-defined addon folder name and storage table for our addon
 local addonName, Driller = ...
 
 
@@ -59,20 +57,38 @@ Driller.Frame, Driller.Events = CreateFrame("Frame"), {}
 
 
 --#########################################
+--# Set up localization
+--#########################################
+
+-- Get the localization data for our locale.
+local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
+
+-- Now we do something stupid.
+-- Localization is usually of the form L["English"] = "OtherLang".
+-- This works when you want an output message in the foreign language and you don't know in advance what that language will be.
+-- But for the drill rigs, I need to convert from the localized name back to English, so I can access the standardized data.
+-- So, I have to invert the localization table to get what I need. Essentially, I need L_inverted["OtherLang"] = "English".
+-- Since it's a relatively small number of rigs that isn't expected to change, I'm hard-coding the inversion.
+-- If I ever expand this addon, I need to change this to keep it maintainable.
+local DrillRigInEnglish = {}
+DrillRigInEnglish[L["DR-CC61"]] = "DR-CC61"
+DrillRigInEnglish[L["DR-CC73"]] = "DR-CC73"
+DrillRigInEnglish[L["DR-CC88"]] = "DR-CC88"
+DrillRigInEnglish[L["DR-JD41"]] = "DR-JD41"
+DrillRigInEnglish[L["DR-JD99"]] = "DR-JD99"
+DrillRigInEnglish[L["DR-TR28"]] = "DR-TR28"
+DrillRigInEnglish[L["DR-TR35"]] = "DR-TR35"
+
+
+--#########################################
 --# Constants
 --#########################################
 
--- The strings that define the addon
-Driller.ADDON_NAME = "Driller" -- the internal addon name for LibStub and other addons
-Driller.USER_ADDON_NAME = addonName -- the name displayed to the user
+-- The addon name displayed to the user
+Driller.USER_ADDON_NAME = L["Drill Sergeant"]
 
 -- The version of this add-on
 Driller.Version = "@project-version@"
-
--- Colors for printing in chat.
-local CHAT_GREEN = "|cff" .. "00ff00"
-local CHAT_BLUE = "|cff" .. "0066ff"
-local CHAT_RED = "|cff" .. "a00000"
 
 -- Map ID for Mechagon, used for ensuring we're in the right zone and for calculating distances on the world map.
 local MECHAGON_MAPID = 1462
@@ -80,83 +96,18 @@ local MECHAGON_MAPID = 1462
 -- Instance ID for Mechagon, returned by GetPlayerWorldPosition() and used in mob GUIDs.
 local MECHAGON_INSTANCEID = 1643
 
-
 -- The mobs and locs identified by each drill rig
 Driller.Projects = {
-	["DR-CC61"] = {Mob = "Gorged Gear-Cruncher", Loc = {x = 73.0, y = 54.2}},
-	["DR-CC73"] = {Mob = "Caustic Mechaslime", Loc = {x = 66.5, y = 58.8}},
-	["DR-CC88"] = {Mob = "The Kleptoboss", Loc = {x = 68.4, y = 48.1}},
+	["DR-CC61"] = {Mob = L["Gorged Gear-Cruncher"], DrillMobID = 154695, Loc = {x = 73.0, y = 54.2}},
+	["DR-CC73"] = {Mob = L["Caustic Mechaslime"], DrillMobID = 154695, Loc = {x = 66.5, y = 58.8}},
+	["DR-CC88"] = {Mob = L["The Kleptoboss"], DrillMobID = 154695, Loc = {x = 68.4, y = 48.1}},
 
-	["DR-JD41"] = {Mob = "Boilburn", Loc = {x = 51.1, y = 50.3}},
-	["DR-JD99"] = {Mob = "Gemicide", Loc = {x = 59.7, y = 67.2}},
+	["DR-JD41"] = {Mob = L["Boilburn"], DrillMobID = 154933, Loc = {x = 51.1, y = 50.3}},
+	["DR-JD99"] = {Mob = L["Gemicide"], DrillMobID = 154933, Loc = {x = 59.7, y = 67.2}},
 
-	["DR-TR28"] = {Mob = "Ol' Big Tusk", Loc = {x = 56.2, y = 36.3}},
-	["DR-TR35"] = {Mob = "Earthbreaker Gulroc", Loc = {x = 63.2, y = 25.4}},
+	["DR-TR28"] = {Mob = L["Ol' Big Tusk"], DrillMobID = 150277, Loc = {x = 56.2, y = 36.3}},
+	["DR-TR35"] = {Mob = L["Earthbreaker Gulroc"], DrillMobID = 150277, Loc = {x = 63.2, y = 25.4}},
 } -- Driller.Projects
-
-
--- For reference only, not actually used in code any more.
-Driller.MobIDs = {
-	[154695] = "DR-CC61", -- "Gorged Gear-Cruncher"
-	[154695] = "DR-CC73", -- "Caustic Mechaslime"
-	[154695] = "DR-CC88", -- "The Kleptoboss"
-
-	[154933] = "DR-JD41", -- "Boilburn"
-	[154933] = "DR-JD99", -- "Gemicide"
-
-	[150277] = "DR-TR28", -- "Ol' Big Tusk"
-	[150277] = "DR-TR35", -- "Earthbreaker Gulroc"
-} -- Driller.MobIDs
-
-
---#########################################
---# Localization
---#########################################
-
--- This bit of meta-magic makes it so that if we call L with a key that doesn't yet exist, a key is created automatically, and its value is the name of the key.  For example, if L["MyAddon"] doesn't exist, and I run print(L["MyAddon"]), the __index command causes the L table to automatically create a new key called MyAddon, and its value is set to tostring("MyAddon") -- same as the key name.
-Driller.L = setmetatable({ }, {__index = function(t, k)
-	local v = tostring(k)
-	rawset(t, k, v)
-	return v
-end})
-
--- The above system effectively makes it so that we don't have to define the default, English-language values.  Just set the key name as the English value.
--- Set the default strings used here.  Other languages can override these as needed.
-
--- In another file, you can override these strings like:
---		if locale == "deDE" then
---			Driller.L["Drill Sergeant"] = "German name of addon here";
---		end
--- That way, it preserves the default English strings in case of a missed translation.
-
-
--- This message captures the drill rig IDs. When localizing, ensure there's exactly one capture block in there -- the (.*) part -- which is where the actual ID would go.
-Driller.L["Drill_Rig_msg_capture"] = "Drill Rig (.*) has been activated! It will finish excavating in 1 minute."
-
--- These translations convert the local-language drill rig names to the English equivalents so they can be correctly mapped.
-Driller.L["DR-CC61"] = "DR-CC61"
-Driller.L["DR-CC73"] = "DR-CC73"
-Driller.L["DR-CC88"] = "DR-CC88"
-Driller.L["DR-JD41"] = "DR-JD41"
-Driller.L["DR-JD99"] = "DR-JD99"
-Driller.L["DR-TR28"] = "DR-TR28"
-Driller.L["DR-TR35"] = "DR-TR35"
-
-
-
--- Now we do something stupid.
--- Localization is usually of the form Driller.L[English] = OtherLang. This works when you want an output message in the foreign language and you don't know in advance what that language will be.
--- But for the drill rigs, I need to convert from the localized name back to English, so I can access the standardized data. So, I have to invert the localization table to get what I need.
--- Essentially, I need L_inverted[OtherLang] = English.
--- Since it's a relatively small number of rigs that isn't expected to change, I'm hard-coding the inversion. If I ever expand this addon, I need to change this to keep it maintainable.
-local DrillRigInEnglish = {}
-DrillRigInEnglish[Driller.L["DR-CC61"]] = "DR-CC61"
-DrillRigInEnglish[Driller.L["DR-CC73"]] = "DR-CC73"
-DrillRigInEnglish[Driller.L["DR-CC88"]] = "DR-CC88"
-DrillRigInEnglish[Driller.L["DR-JD41"]] = "DR-JD41"
-DrillRigInEnglish[Driller.L["DR-JD99"]] = "DR-JD99"
-DrillRigInEnglish[Driller.L["DR-TR28"]] = "DR-TR28"
-DrillRigInEnglish[Driller.L["DR-TR35"]] = "DR-TR35"
 
 
 --#########################################
@@ -166,6 +117,7 @@ DrillRigInEnglish[Driller.L["DR-TR35"]] = "DR-TR35"
 -- Code in this section is partially adapted from idTip (public domain) by silv3rwind on Curse
 
 -- If the user mouses over a damaged drill rig, put the corresponding rare name in the tooltip.
+-- Bonus: also identifies mushrooms that spawn Fungarian Furor
 GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 	-- Don't process if we're in a pet battle
 	if C_PetBattles.IsInBattle() then return end
@@ -189,31 +141,13 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 	-- get details on the unit, and make sure it's not a player.
 	local guid = UnitGUID(unit) or ""
 	Driller.Utilities:DebugPrint("guid is " .. (guid or "nil"))
+	-- GUID format
+	-- [Unit type]-0-[server ID]-[instance ID]-[zone UID]-[ID]-[spawn UID]
+	-- (Example: "Creature-0-970-0-11-31146-000136DF91")
 
 	local NPCID = tonumber(guid:match("-(%d+)-%x+$"), 10)
 	local IsPlayer = guid:match("%a+") == "Player"
 	if IsPlayer or not NPCID then return end
-
-	if type(NPCID) == "table" then
-		-- This branch should normally never happen.
-		-- The original version of the function had to be adaptable to many different tooltip types,
-		--   some of which could return multiple values.
-		-- But NPCs should only ever have a single ID.
-		-- Just in case it does, make sure we don't corrupt the tooltip.
-
-		Driller.Utilities:DebugPrint("found ID that's a table, dumping")
-		Driller.Utilities:DumpTable(NPCID)
-
-		if #NPCID == 1 then
-			Driller.Utilities:DebugPrint("Converting single-element NPCID table to a simple value")
-			NPCID = NPCID[1]
-		else
-
-			Driller.Utilities:DebugPrint("Found multi-element table for NPCID. Bailing out.")
-			return
-		end
-	end
-
 
 	local ProjectID, MobX, MobY-- used for finding the range
 
@@ -270,6 +204,7 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 			Driller.Utilities:DebugPrint("Picking DR-JD99 Gemicide")
 			ProjectID = "DR-JD99" -- "Gemicide"
 		end
+
 	elseif 150277 == NPCID then
 		-- could be:
 		-- "DR-TR28", -- "Ol' Big Tusk"
@@ -293,6 +228,16 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 			Driller.Utilities:DebugPrint("Picking DR-TR35 Earthbreaker Gulroc")
 			ProjectID = "DR-TR35" -- "Earthbreaker Gulroc"
 		end
+
+	--elseif 135497 == NPCID then
+	elseif 154340 == NPCID then
+		-- real mushroom that spawns Fungarian Furor
+		GameTooltip:AddLine(L["FUROR"]:format(Driller.Utilities.CHAT_GREEN .. L["Fungarian Furor"] .. FONT_COLOR_CODE_CLOSE))
+
+	elseif 151893 == NPCID then
+		-- fake mushroom that spawns random trash
+		GameTooltip:AddLine(L["NOT_FUROR"]:format(Driller.Utilities.CHAT_RED .. L["Fungarian Furor"] .. FONT_COLOR_CODE_CLOSE))
+
 	else
 		-- not a tracked ID
 		--Driller.Utilities:DebugPrint("Not a tracked NPC.")
@@ -306,12 +251,12 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 
 	local Project = Driller.Projects[ProjectID]
 	if not Project then
-		Driller.Utilities:ChatPrint("No matching project for mob ID " .. NPCID .. " with project ID " .. ProjectID .. ". Bad programmer, no cookie! Please inform the addon author to fix this error.")
+		Driller.Utilities:ChatPrint(L["PROJECT_ERROR"]:format(NPCID, ProjectID))
 		return
 	end
 
 	Driller.Utilities:DebugPrint("match found in MobIDs: " .. Project.Mob)
-	GameTooltip:AddLine(ProjectID .. " opens a path to " .. CHAT_GREEN .. Project.Mob .. FONT_COLOR_CODE_CLOSE)
+	GameTooltip:AddLine(L["OPENS_A_PATH"]:format(ProjectID, Driller.Utilities.CHAT_GREEN .. Project.Mob .. FONT_COLOR_CODE_CLOSE))
 	GameTooltip:Show()
 
 end) -- HookScript("OnTooltipSetUnit")
@@ -335,7 +280,7 @@ function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 	Driller.Utilities:DebugPrint("sender is >>" .. sender .. "<<")
 
 	-- Parse the message to see whether it is a drill rig announcement.
-	local DrillID = string.match(message, Driller.L["Drill_Rig_msg_capture"])
+	local DrillID = string.match(message, L["Drill_Rig_msg_capture"])
 
 
 	if DrillID then
@@ -351,9 +296,12 @@ function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 			Driller.Utilities:DebugPrint("loc is >>" .. Loc .. "<<")
 
 			-- Found a proper drill message. Notify the user.
-			Driller.Utilities:ChatPrint(CHAT_GREEN .. Driller.Projects[DrillID].Mob .. FONT_COLOR_CODE_CLOSE .. " is about to spawn at location " .. Loc .. " in one minute.")
+			Driller.Utilities:ChatPrint(L["ABOUT_TO_SPAWN"]:format(
+					Driller.Utilities.CHAT_GREEN .. Driller.Projects[DrillID].Mob .. FONT_COLOR_CODE_CLOSE,
+					Loc
+			))
 		else
-			Driller.Utilities:ChatPrint("Unknown Drill ID " .. DrillID .. ". Please report this message and the Drill Rig message right above (or below) it to the addon author for investigation.")
+			Driller.Utilities:ChatPrint(L["UNKNOWN_DRILL_ID"]:format(DrillID))
 		end
 	else
 		Driller.Utilities:DebugPrint("Not a drill message.")
@@ -384,12 +332,13 @@ end
 
 -- Toggle debug mode if asked
 function Driller.CommandLine(arg, ...)
+	-- Ouptput messages are not localized because end users shouldn't be using this anwyay.
 	if "DEBUG" == arg:upper() then
 		Driller.DebugMode = not Driller.DebugMode
 		if Driller.DebugMode then
-			Driller.Utilities:ChatPrint("Debug mode is now " .. CHAT_GREEN .. "on" .. FONT_COLOR_CODE_CLOSE .. ".")
+			Driller.Utilities:ChatPrint("Debug mode is now " .. Driller.Utilities.CHAT_GREEN .. "on" .. FONT_COLOR_CODE_CLOSE .. ".")
 		else
-			Driller.Utilities:ChatPrint("Debug mode is now " .. CHAT_RED .. "off" .. FONT_COLOR_CODE_CLOSE .. ".")
+			Driller.Utilities:ChatPrint("Debug mode is now " .. Driller.Utilities.CHAT_RED .. "off" .. FONT_COLOR_CODE_CLOSE .. ".")
 		end
 	else
 		Driller.Utilities:ChatPrint("Unrecognized command: " .. arg)
@@ -398,5 +347,5 @@ end -- Driller.CommandLine()
 
 
 -- Set the default slash command.
-SLASH_DS1 = "/ds"
-SlashCmdList.DS = function (...) Driller.CommandLine(...) end
+SLASH_DRILLER1 = "/driller"
+SlashCmdList.DRILLER = function (...) Driller.CommandLine(...) end

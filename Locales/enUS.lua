@@ -11,8 +11,15 @@
 --# Description
 --#########################################
 
--- This add-on reads drill rig announcements in Mechagon and parses them to identify the name of the associated rare, and the drill location.
--- It also adds the name of the rare to the tooltip when mousing over a broken drill rig.
+-- This file includes the master localization setup for Drill Sergeant in English.
+
+--#########################################
+--# Bail out on WoW Classic
+--#########################################
+
+-- Mechagon doesn't exist on WoW Classic, so if a user runs this on Classic, just exit at once.
+if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then return end
+
 
 local addonName, Driller = ...
 

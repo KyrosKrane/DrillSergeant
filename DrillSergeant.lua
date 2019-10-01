@@ -63,22 +63,6 @@ Driller.Frame, Driller.Events = CreateFrame("Frame"), {}
 -- Get the localization data for our locale.
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
--- Now we do something stupid.
--- Localization is usually of the form L["English"] = "OtherLang".
--- This works when you want an output message in the foreign language and you don't know in advance what that language will be.
--- But for the drill rigs, I need to convert from the localized name back to English, so I can access the standardized data.
--- So, I have to invert the localization table to get what I need. Essentially, I need L_inverted["OtherLang"] = "English".
--- Since it's a relatively small number of rigs that isn't expected to change, I'm hard-coding the inversion.
--- If I ever expand this addon, I need to change this to keep it maintainable.
-local DrillRigInEnglish = {}
-DrillRigInEnglish[L["DR-CC61"]] = "DR-CC61"
-DrillRigInEnglish[L["DR-CC73"]] = "DR-CC73"
-DrillRigInEnglish[L["DR-CC88"]] = "DR-CC88"
-DrillRigInEnglish[L["DR-JD41"]] = "DR-JD41"
-DrillRigInEnglish[L["DR-JD99"]] = "DR-JD99"
-DrillRigInEnglish[L["DR-TR28"]] = "DR-TR28"
-DrillRigInEnglish[L["DR-TR35"]] = "DR-TR35"
-
 
 --#########################################
 --# Constants
@@ -97,6 +81,7 @@ local MECHAGON_MAPID = 1462
 local MECHAGON_INSTANCEID = 1643
 
 -- The mobs and locs identified by each drill rig
+-- The key must be the drill rig name in English
 Driller.Projects = {
 	["DR-CC61"] = {Mob = L["Gorged Gear-Cruncher"], DrillMobID = 154695, Loc = {x = 73.0, y = 54.2}},
 	["DR-CC73"] = {Mob = L["Caustic Mechaslime"], DrillMobID = 154695, Loc = {x = 66.5, y = 58.8}},
@@ -108,6 +93,25 @@ Driller.Projects = {
 	["DR-TR28"] = {Mob = L["Ol' Big Tusk"], DrillMobID = 150277, Loc = {x = 56.2, y = 36.3}},
 	["DR-TR35"] = {Mob = L["Earthbreaker Gulroc"], DrillMobID = 150277, Loc = {x = 63.2, y = 25.4}},
 } -- Driller.Projects
+
+
+--#########################################
+--# Get drill rig localized names
+--#########################################
+
+local k, v
+
+-- Now we do something stupid.
+-- Localization is usually of the form L["English"] = "OtherLang".
+-- This works when you want an output message in the foreign language and you don't know in advance what that language will be.
+-- But for the drill rigs, I need to convert from the localized name back to English, so I can access the standardized data.
+-- So, I have to invert the localization table to get what I need. Essentially, I need L_inverted["OtherLang"] = "English".
+-- The easiest way to get that info is by using the Projects table.
+local DrillRigInEnglish = {}
+
+for k, v in pairs(Driller.Projects) do
+	DrillRigInEnglish[L[k]] = k
+end
 
 
 --#########################################

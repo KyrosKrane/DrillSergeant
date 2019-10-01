@@ -121,10 +121,16 @@ end
 --# Tooltip detection and management
 --#########################################
 
--- Code in this section is partially adapted from idTip (public domain) by silv3rwind on Curse
+
+-- This function is just a small wrapper that adds a given line of text to the game tooltip, with a prefix of our addon name.
+function Driller.AddTooltipLine(line)
+	GameTooltip:AddLine(Driller.Utilities:Color(Driller.USER_ADDON_NAME .. ": ", Driller.Utilities.CHAT_BLUE) .. line)
+end
+
 
 -- If the user mouses over a damaged drill rig, put the corresponding rare name in the tooltip.
 -- Bonus: also identifies mushrooms that spawn Fungarian Furor
+-- Code in this function is partially adapted from idTip (public domain) by silv3rwind on Curse
 GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 	-- Don't process if we're in a pet battle
 	if C_PetBattles.IsInBattle() then return end
@@ -266,6 +272,7 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 
 	Driller.Utilities:DebugPrint("NPCID is " .. NPCID ..", ProjectID is " .. ProjectID)
 
+	-- Convert to a usable project object to get the mob name.
 	local Project = Driller.Projects[ProjectID]
 	if not Project then
 		Driller.Utilities:ChatPrint(L["PROJECT_ERROR"]:format(NPCID, ProjectID))
@@ -274,9 +281,9 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 
 	Driller.Utilities:DebugPrint("match found in MobIDs: " .. Project.Mob)
 	if InRange then
-		GameTooltip:AddLine(L["OPENS_A_PATH"]:format(ProjectID, Driller.Utilities.CHAT_GREEN .. Project.Mob .. FONT_COLOR_CODE_CLOSE))
+		Driller.AddTooltipLine(L["OPENS_A_PATH"]:format(ProjectID, Driller.Utilities.CHAT_GREEN .. Project.Mob .. FONT_COLOR_CODE_CLOSE))
 	else
-		GameTooltip:AddLine(L["OPENS_A_PATH_PROBABLE"]:format(ProjectID, Driller.Utilities.CHAT_GREEN .. Project.Mob .. FONT_COLOR_CODE_CLOSE))
+		Driller.AddTooltipLine(L["TOO_FAR"])
 	end
 	GameTooltip:Show()
 
@@ -301,7 +308,7 @@ function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 	Driller.Utilities:DebugPrint("sender is >>" .. sender .. "<<")
 
 	-- Parse the message to see whether it is a drill rig announcement.
-	local DrillID = string.match(message, L["Drill_Rig_msg_capture"])
+	local DrillID = string.match(message, L["DRILL_RIG_MSG_CAPTURE"])
 
 
 	if DrillID then

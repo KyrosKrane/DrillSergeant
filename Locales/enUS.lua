@@ -20,12 +20,13 @@
 -- Mechagon doesn't exist on WoW Classic, so if a user runs this on Classic, just exit at once.
 if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then return end
 
-
+-- Get the addon info
 local addonName, Driller = ...
 
-
+-- Set the locale
 local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true)
 
+-- Get the locale strings
 if L then
 
 	------------------------------------
@@ -36,7 +37,10 @@ if L then
 	L["Drill Sergeant"] = "Drill Sergeant"
 
 	-- This is the Drill Rig announcement message. We use it to capture the drill rig ID to figure out what mob will spawn.
-	L["Drill_Rig_msg_capture"] = "Drill Rig (.*) has been activated! It will finish excavating in 1 minute."
+	L["DRILL_RIG_MSG_CAPTURE"] = "Drill Rig (.*) has been activated! It will finish excavating in 1 minute."
+
+	-- This is the message the user gets when mousing over something too far away.
+	L["TOO_FAR"] = "Too far to identify, move closer"
 
 
 	-- These translations convert the local-language drill rig names to the English equivalents so they can be correctly mapped.
@@ -65,7 +69,6 @@ if L then
 
 	-- These are phrases that require substitutions
 	L["OPENS_A_PATH"] = "%1$s opens a path to %2$s"
-	L["OPENS_A_PATH_PROBABLE"] = "Too far, move closer. Could be %2$s"
 	L["ABOUT_TO_SPAWN"] = "%1$s is about to spawn at location %2$s in one minute."
 
 	L["FUROR"] = "Spawns %1$s when activated"

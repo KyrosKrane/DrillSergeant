@@ -1,14 +1,24 @@
 sudo: false
-language: c
- 
-addons:
-  apt:
-    packages:
-    - pandoc
- 
-script: curl -sO https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh
-after_script: bash release.sh
+language: minimal
 
-branches:
-  only:
-  - /^[vV]?\d+\.\d+(\.\d+)?(-\S*)?$/
+stages
+  - name: alpha
+    branches:
+      only:
+      - /^[vV]?\d+\.\d+(\.\d+)?-alpha(\S*)?$/
+    script: curl -sO https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh
+    after_script: bash release.sh -w 0
+
+  - name: beta
+    branches:
+      only:
+      - /^[vV]?\d+\.\d+(\.\d+)?-beta(\S*)?$/
+    script: curl -sO https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh
+    after_script: bash release.sh -w 0
+
+  - name: release
+    branches:
+      only:
+      - /^[vV]?\d+\.\d+(\.\d+)?-release(\S*)?$/
+    script: curl -sO https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh
+    after_script: bash release.sh

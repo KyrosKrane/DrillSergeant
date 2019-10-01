@@ -1,7 +1,7 @@
 sudo: false
 language: minimal
 
-stages
+stages:
   - name: alpha
     branches:
       only:

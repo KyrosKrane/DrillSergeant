@@ -6,6 +6,8 @@ enable-nolib-creation: no
 ignore:
     - README.md
     - Libs/LibStub/tests
+    - WoWI description in BBcode.txt
+    - Curse description.md
 
 externals:
     # Prereqs

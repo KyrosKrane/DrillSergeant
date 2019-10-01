@@ -1,0 +1,28 @@
+[SIZE="5"][B]Ten-HUT![/B][/SIZE]
+
+If you're wandering around Mechagon aimlessly, looking for rigs and hoping it spawns the rare you need, then you need discipline! You need order! You need a drill sergeant to keep you in line!
+
+This addon makes your drill wrangling in Mechagon easier in two ways.
+
+First, it will put the name of the rare that would be spawned in your tooltip when you mouse over a Broken Drill Rig. If you're too far from the broken rig, it will ask you to get closer so it gets an accurate ID.
+
+[IMG]https://cdn-wow.mmoui.com/preview/pvw72145.png[/IMG][IMG]https://cdn-wow.mmoui.com/preview/pvw72147.png[/IMG]
+
+Second, when a drill rig is completed anywhere in Mechagon, it gives a zonewide announcement. Drill Sergeant will tell you what rare is about to spawn and where to go to get it!
+
+[IMG]https://cdn-wow.mmoui.com/preview/pvw72146.png[/IMG]
+
+There's no configuration or settings; just install it and go!
+
+[SIZE="5"][B]Version Notes[/B][/SIZE]
+Version 1 is the first general release.
+
+I've tested this add-on in a variety of situations, and it seems to work correctly in all of them. If you encounter any errors, PLEASE open a ticket [URL="https://github.com/KyrosKrane/DrillSergeant/issues"]here[/URL] including the FULL error message. I also need to know what you were doing when the error happened.
+
+[SIZE="5"][B]Known errors[/B][/SIZE]
+None!
+
+[SIZE="5"][B]Future update plans[/B][/SIZE]
+None! Let me know what you'd like to see in the comments section. Or for live support, [URL="https://discord.gg/YRBDrxQ"]visit my Discord server[/URL]!
+
+Bitcoin and Bitcoin Cash donations gratefully accepted at: 1Kyros6w6CHRFLXZCwhBPNTbRPUNJ35L97

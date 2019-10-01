@@ -80,6 +80,9 @@ local MECHAGON_MAPID = 1462
 -- Instance ID for Mechagon, returned by GetPlayerWorldPosition() and used in mob GUIDs.
 local MECHAGON_INSTANCEID = 1643
 
+-- This is the longest distance permitted for accurate detection. Shorter than this gets rejected.
+local MAX_RANGE_FOR_ID = 50
+
 -- The mobs and locs identified by each drill rig
 -- The key must be the drill rig name in English
 Driller.Projects = {
@@ -136,7 +139,7 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 	-- if HBD returns invalid X or Y values (usually because the client is too busy), bail out so we don't throw user errors.
 	if not PlayerX or not PlayerY then return end
 
-	Driller.Utilities:DebugPrint("PlayerX is " .. (PlayerX or "nil") .. ", PlayerY is " .. (PlayerY or "nil") .. ", PinstanceID is " .. (PinstanceID or "nil"))
+	--Driller.Utilities:DebugPrint("PlayerX is " .. (PlayerX or "nil") .. ", PlayerY is " .. (PlayerY or "nil") .. ", PinstanceID is " .. (PinstanceID or "nil"))
 
 	-- Find out what unit is being moused over
 	local unit = select(2, self:GetUnit())
@@ -144,7 +147,7 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 
 	-- get details on the unit, and make sure it's not a player.
 	local guid = UnitGUID(unit) or ""
-	Driller.Utilities:DebugPrint("guid is " .. (guid or "nil"))
+	--Driller.Utilities:DebugPrint("guid is " .. (guid or "nil"))
 	-- GUID format
 	-- [Unit type]-0-[server ID]-[instance ID]-[zone UID]-[ID]-[spawn UID]
 	-- (Example: "Creature-0-970-0-11-31146-000136DF91")
@@ -153,7 +156,8 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 	local IsPlayer = guid:match("%a+") == "Player"
 	if IsPlayer or not NPCID then return end
 
-	local ProjectID, MobX, MobY-- used for finding the range
+	local ProjectID, MobX, MobY  -- used for finding the range
+	local InRange = true -- is the mob in ID range?
 
 	if 154695 == NPCID then
 		-- could be:
@@ -178,12 +182,15 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 		if RangeToGearCruncher <= RangeToMechaslime and RangeToGearCruncher <= RangeToKleptoboss then
 			Driller.Utilities:DebugPrint("Picking DR-CC61 Gorged Gear-Cruncher")
 			ProjectID = "DR-CC61" -- "Gorged Gear-Cruncher"
+			if RangeToGearCruncher >= MAX_RANGE_FOR_ID then InRange = false end
 		elseif RangeToMechaslime <= RangeToGearCruncher and RangeToMechaslime <= RangeToKleptoboss then
 			Driller.Utilities:DebugPrint("Picking DR-CC73 Caustic Mechaslime")
 			ProjectID = "DR-CC73" -- "Caustic Mechaslime"
+			if RangeToMechaslime >= MAX_RANGE_FOR_ID then InRange = false end
 		else
 			Driller.Utilities:DebugPrint("Picking DR-CC88 Kleptoboss")
 			ProjectID = "DR-CC88" -- "Kleptoboss"
+			if RangeToKleptoboss >= MAX_RANGE_FOR_ID then InRange = false end
 		end
 
 	elseif 154933 == NPCID then
@@ -204,9 +211,11 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 		if RangeToBoilburn < RangeToGemicide then
 			Driller.Utilities:DebugPrint("Picking DR-JD41 Boilburn")
 			ProjectID = "DR-JD41" -- "Boilburn"
+			if RangeToBoilburn >= MAX_RANGE_FOR_ID then InRange = false end
 		else
 			Driller.Utilities:DebugPrint("Picking DR-JD99 Gemicide")
 			ProjectID = "DR-JD99" -- "Gemicide"
+			if RangeToGemicide >= MAX_RANGE_FOR_ID then InRange = false end
 		end
 
 	elseif 150277 == NPCID then
@@ -220,7 +229,6 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 		local RangeToBigTusk = HBD:GetWorldDistance(MECHAGON_MAPID, PlayerX, PlayerY, MobX, MobY)
 		Driller.Utilities:DebugPrint("MobX, MobY, RangeToBigTusk is " .. MobX .. ", " .. MobY .. ", " .. RangeToBigTusk)
 
-
 		MobX, MobY = HBD:GetWorldCoordinatesFromZone(Driller.Projects["DR-TR35"].Loc.x/100, Driller.Projects["DR-TR35"].Loc.y/100, MECHAGON_MAPID)
 		local RangeToGulroc = HBD:GetWorldDistance(MECHAGON_MAPID, PlayerX, PlayerY, MobX, MobY)
 		Driller.Utilities:DebugPrint("MobX, MobY, RangeToGulroc is " .. MobX .. ", " .. MobY .. ", " .. RangeToGulroc)
@@ -228,18 +236,24 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 		if RangeToBigTusk < RangeToGulroc then
 			Driller.Utilities:DebugPrint("Picking DR-TR28 Ol' Big Tusk")
 			ProjectID = "DR-TR28" -- "Ol' Big Tusk"
+			if RangeToBigTusk >= MAX_RANGE_FOR_ID then InRange = false end
 		else
 			Driller.Utilities:DebugPrint("Picking DR-TR35 Earthbreaker Gulroc")
 			ProjectID = "DR-TR35" -- "Earthbreaker Gulroc"
+			if RangeToGulroc >= MAX_RANGE_FOR_ID then InRange = false end
 		end
 
 	elseif 135497 == NPCID then
 		-- real mushroom that spawns Fungarian Furor
+		--Driller.Utilities:DebugPrint("Found real mushroom.")
 		GameTooltip:AddLine(L["FUROR"]:format(Driller.Utilities.CHAT_GREEN .. L["Fungarian Furor"] .. FONT_COLOR_CODE_CLOSE))
+		return
 
 	elseif 151893 == NPCID then
 		-- fake mushroom that spawns random trash
+		--Driller.Utilities:DebugPrint("Found fake mushroom.")
 		GameTooltip:AddLine(L["NOT_FUROR"]:format(Driller.Utilities.CHAT_RED .. L["Fungarian Furor"] .. FONT_COLOR_CODE_CLOSE))
+		return
 
 	else
 		-- not a tracked ID
@@ -259,7 +273,11 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 	end
 
 	Driller.Utilities:DebugPrint("match found in MobIDs: " .. Project.Mob)
-	GameTooltip:AddLine(L["OPENS_A_PATH"]:format(ProjectID, Driller.Utilities.CHAT_GREEN .. Project.Mob .. FONT_COLOR_CODE_CLOSE))
+	if InRange then
+		GameTooltip:AddLine(L["OPENS_A_PATH"]:format(ProjectID, Driller.Utilities.CHAT_GREEN .. Project.Mob .. FONT_COLOR_CODE_CLOSE))
+	else
+		GameTooltip:AddLine(L["OPENS_A_PATH_PROBABLE"]:format(ProjectID, Driller.Utilities.CHAT_GREEN .. Project.Mob .. FONT_COLOR_CODE_CLOSE))
+	end
 	GameTooltip:Show()
 
 end) -- HookScript("OnTooltipSetUnit")

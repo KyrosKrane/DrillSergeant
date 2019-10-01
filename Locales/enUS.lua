@@ -65,6 +65,7 @@ if L then
 
 	-- These are phrases that require substitutions
 	L["OPENS_A_PATH"] = "%1$s opens a path to %2$s"
+	L["OPENS_A_PATH_PROBABLE"] = "Too far, move closer. Could be %2$s"
 	L["ABOUT_TO_SPAWN"] = "%1$s is about to spawn at location %2$s in one minute."
 
 	L["FUROR"] = "Spawns %1$s when activated"

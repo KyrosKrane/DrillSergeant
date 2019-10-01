@@ -4,32 +4,28 @@ language: minimal
 jobs:
   include:
 
-    - stage: download
-      branches:
-        only:
-        - /^[vV]?\d+\.\d+(\.\d+)?(-\S*)?$/
-      script: curl -sO https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh
-
     - stage: alpha
       branches:
         only:
         - /^[vV]?\d+\.\d+(\.\d+)?-alpha(\S*)?$/
+      before_script: curl -sO https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh
       script: bash release.sh -w 0
 
     - stage: beta
       branches:
         only:
         - /^[vV]?\d+\.\d+(\.\d+)?-beta(\S*)?$/
+      before_script: curl -sO https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh
       script: bash release.sh -w 0
 
     - stage: release
       branches:
         only:
         - /^[vV]?\d+\.\d+(\.\d+)?-release(\S*)?$/
+      before_script: curl -sO https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh
       script: bash release.sh
 
 stages:
-  - download
   - alpha
   - beta
   - release

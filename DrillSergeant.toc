@@ -1,4 +1,4 @@
-## Interface: 80200
+## Interface: 80205
 ## Title: Drill Sergeant
 ## Version: @project-version@
 ## Author: KyrosKrane Sylvanblade

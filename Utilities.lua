@@ -100,9 +100,6 @@ local MAX_RECURSION_DEPTH = 10
 function addon.Utilities:DumpTable(TableToDump, indent)
 	if not addon.DebugMode then return end
 
-	local tostring = tostring
-
-
 	if not indent then indent = 0 end
 	if indent > MAX_RECURSION_DEPTH then
 		addon.Utilities:DebugPrint("Recursion is at" .. (MAX_RECURSION_DEPTH + 1) .. " already; aborting.")
@@ -112,7 +109,7 @@ function addon.Utilities:DumpTable(TableToDump, indent)
 	for k, v in pairs(TableToDump) do
 		local s = ""
 		if indent > 0 then
-			for i = 0, indent do
+			for i = 1, indent do
 				s = s .. "    "
 			end
 		end

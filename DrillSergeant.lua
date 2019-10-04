@@ -29,14 +29,6 @@ if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then return end
 --# Globals and utilities
 --#########################################
 
--- Get local references to speed up execution.
-local string = string
-local print = print
-local select = select
-local type = type
-local pairs = pairs
-local tonumber = tonumber
-
 -- Grab the WoW-defined addon folder name and storage table for our addon
 local addonName, Driller = ...
 
@@ -102,8 +94,6 @@ Driller.Projects = {
 --# Get drill rig localized names
 --#########################################
 
-local k, v
-
 -- Now we do something stupid.
 -- Localization is usually of the form L["English"] = "OtherLang".
 -- This works when you want an output message in the foreign language and you don't know in advance what that language will be.
@@ -121,9 +111,8 @@ end
 --# Tooltip detection and management
 --#########################################
 
-
 -- This function is just a small wrapper that adds a given line of text to the game tooltip, with a prefix of our addon name.
-function Driller.AddTooltipLine(line)
+function Driller:AddTooltipLine(line)
 	GameTooltip:AddLine(Driller.Utilities:Color(Driller.USER_ADDON_NAME .. ": ", Driller.Utilities.CHAT_BLUE) .. line)
 end
 
@@ -252,13 +241,13 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 	elseif 135497 == NPCID then
 		-- real mushroom that spawns Fungarian Furor
 		--Driller.Utilities:DebugPrint("Found real mushroom.")
-		GameTooltip:AddLine(L["FUROR"]:format(Driller.Utilities.CHAT_GREEN .. L["Fungarian Furor"] .. FONT_COLOR_CODE_CLOSE))
+		Driller:AddTooltipLine(L["FUROR"]:format(Driller.Utilities.CHAT_GREEN .. L["Fungarian Furor"] .. FONT_COLOR_CODE_CLOSE))
 		return
 
 	elseif 151893 == NPCID then
 		-- fake mushroom that spawns random trash
 		--Driller.Utilities:DebugPrint("Found fake mushroom.")
-		GameTooltip:AddLine(L["NOT_FUROR"]:format(Driller.Utilities.CHAT_RED .. L["Fungarian Furor"] .. FONT_COLOR_CODE_CLOSE))
+		Driller:AddTooltipLine(L["NOT_FUROR"]:format(Driller.Utilities.CHAT_RED .. L["Fungarian Furor"] .. FONT_COLOR_CODE_CLOSE))
 		return
 
 	else
@@ -281,9 +270,9 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 
 	Driller.Utilities:DebugPrint("match found in MobIDs: " .. Project.Mob)
 	if InRange then
-		Driller.AddTooltipLine(L["OPENS_A_PATH"]:format(ProjectID, Driller.Utilities.CHAT_GREEN .. Project.Mob .. FONT_COLOR_CODE_CLOSE))
+		Driller:AddTooltipLine(L["OPENS_A_PATH"]:format(ProjectID, Driller.Utilities.CHAT_GREEN .. Project.Mob .. FONT_COLOR_CODE_CLOSE))
 	else
-		Driller.AddTooltipLine(L["TOO_FAR"])
+		Driller:AddTooltipLine(L["TOO_FAR"])
 	end
 	GameTooltip:Show()
 
@@ -301,7 +290,6 @@ function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 	local Map = C_Map.GetBestMapForUnit("player")
 	if not Map or Map ~= MECHAGON_MAPID then return end
 
-
 	local message, sender = ...
 	Driller.Utilities:DebugPrint("Got CHAT_MSG_MONSTER_EMOTE")
 	Driller.Utilities:DebugPrint("message is >>" .. message .. "<<")
@@ -309,7 +297,6 @@ function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 
 	-- Parse the message to see whether it is a drill rig announcement.
 	local DrillID = string.match(message, L["DRILL_RIG_MSG_CAPTURE"])
-
 
 	if DrillID then
 		Driller.Utilities:DebugPrint("Identified localized language DrillID " .. DrillID)
@@ -356,7 +343,6 @@ end
 --#########################################
 --# Create command line for debug mode toggling
 --#########################################
-
 
 -- Toggle debug mode if asked
 function Driller.CommandLine(arg, ...)

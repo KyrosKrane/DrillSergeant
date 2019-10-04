@@ -69,8 +69,14 @@ Driller.Version = "@project-version@"
 -- Map ID for Mechagon, used for ensuring we're in the right zone and for calculating distances on the world map.
 local MECHAGON_MAPID = 1462
 
--- Instance ID for Mechagon, returned by GetPlayerWorldPosition() and used in mob GUIDs.
-local MECHAGON_INSTANCEID = 1643
+-- Mechagon sub-zone maps, used for figuring out if we're in a place where we should respond to emotes
+local MECHAGON_SUB_MAP_IDS = {
+	[1462] = "Mechagon Island",
+	[1522] = "Crumbling Cavern",
+}
+
+-- Instance ID for Kul Tiras, returned by GetPlayerWorldPosition() and used in mob GUIDs.
+-- local KUL_TIRAS_INSTANCEID = 1643
 
 -- This is the longest distance permitted for accurate detection. Shorter than this gets rejected.
 local MAX_RANGE_FOR_ID = 50
@@ -131,7 +137,7 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 
 	-- Bail out if we're not in Mechagon.
 	local Map = C_Map.GetBestMapForUnit("player")
-	if not Map or Map ~= MECHAGON_MAPID then return end
+	if not Map or not MECHAGON_SUB_MAP_IDS[Map] then return end
 
 	-- Get player world coordinates
 	local PlayerX, PlayerY, PinstanceID = HBD:GetPlayerWorldPosition()
@@ -285,7 +291,7 @@ function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 
 	-- Bail out if we're not in Mechagon.
 	local Map = C_Map.GetBestMapForUnit("player")
-	if not Map or Map ~= MECHAGON_MAPID then return end
+	if not Map or not MECHAGON_SUB_MAP_IDS[Map] then return end
 
 	local message, sender = ...
 	Driller.Utilities:DebugPrint("Got CHAT_MSG_MONSTER_EMOTE")

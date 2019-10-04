@@ -97,7 +97,8 @@ Driller.Projects = {
 
 -- Pre-calculate the world X and Y coordinates for each mob
 for k, v in pairs(Driller.Projects) do
-	v.WorldLoc = { HBD:GetWorldCoordinatesFromZone(v.Loc.x/100, v.Loc.y/100, MECHAGON_MAPID) }
+	local x, y = HBD:GetWorldCoordinatesFromZone(v.Loc.x/100, v.Loc.y/100, MECHAGON_MAPID)
+	v.WorldLoc = { x=x, y=y }
 end
 
 

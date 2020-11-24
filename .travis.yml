@@ -35,11 +35,3 @@ jobs:
     - stage: release
       before_script: curl -sO https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh
       script: bash release.sh
-
-
-# If you need WoW Classic support, then replace the script line in each stage with this:
-# (uncommented of course)
-#
-#     script:
-#       - bash release.sh
-#       - bash release.sh -g 1.13.2

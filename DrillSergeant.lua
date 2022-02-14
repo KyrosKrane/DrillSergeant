@@ -62,6 +62,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 -- The addon name displayed to the user
 Driller.USER_ADDON_NAME = L["Drill Sergeant"]
+Driller.USER_ADDON_SHORT_NAME = L["Drill Sergeant"]
 
 -- The version of this add-on
 Driller.Version = "@project-version@"

@@ -8,6 +8,7 @@ ignore:
     - Libs/LibStub/tests
     - WoWI description in BBcode.txt
     - Curse description.md
+    - Images
 
 externals:
     # Prereqs

@@ -6,13 +6,15 @@ This addon makes your drill wrangling in Mechagon easier in two ways.
 
 First, Drill Sergeant will put the name of the rare that would be spawned in your tooltip when you mouse over a Broken Drill Rig. If you're too far from the broken rig, it will ask you to get closer so it gets an accurate ID.
 
-![What the tooltip looks like](https://media.forgecdn.net/attachments/264/394/tooltip.png "Tooltip")  ![Tooltip when you're too far from a rig](https://media.forgecdn.net/attachments/264/396/too-far.png "Tooltip too far")
+![What the tooltip looks like](https://raw.githubusercontent.com/KyrosKrane/DrillSergeant/master/Images/tooltip.png "Tooltip")  ![Tooltip when you're too far from a rig](https://raw.githubusercontent.com/KyrosKrane/DrillSergeant/master/Images/too_far.png "Tooltip too far")
 
 Second, when a drill rig is completed anywhere in Mechagon, it gives a zonewide announcement. Drill Sergeant will tell you what rare is about to spawn and where to go to get it!
 
-![Chat message when a rig is completed](https://media.forgecdn.net/attachments/264/395/chat-message.png "Chat message")
+![Chat message when a rig is completed](https://raw.githubusercontent.com/KyrosKrane/DrillSergeant/master/Images/Chat_message.png "Chat message")
 
 There's no configuration or settings; just install it and go!
+
+**Bonus!** Drill Sergeant will also point out which mushrooms will get you the Fungarian Furor
 
 ## Version Notes
 Version 1 is the first general release.

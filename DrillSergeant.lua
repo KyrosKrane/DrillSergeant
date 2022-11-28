@@ -1,6 +1,6 @@
 -- DrillSergeant.lua
 -- Written by KyrosKrane Sylvanblade (kyros@kyros.info)
--- Copyright (c) 2019 KyrosKrane Sylvanblade
+-- Copyright (c) 2019-2022 KyrosKrane Sylvanblade
 -- Licensed under the MIT License, as per the included file.
 
 -- File revision: @file-abbreviated-hash@
@@ -22,7 +22,7 @@
 -- Mechagon doesn't exist on WoW Classic, so if a user runs this on Classic, just exit at once.
 -- for Classic: local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 -- For retail: local IsRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
-if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then return end
+if not WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then return end
 
 
 --#########################################
@@ -133,7 +133,12 @@ end
 -- If the user mouses over a damaged drill rig, put the corresponding rare name in the tooltip.
 -- Bonus: also identifies mushrooms that spawn Fungarian Furor
 -- Code in this function is partially adapted from idTip (public domain) by silv3rwind on Curse
-GameTooltip:HookScript("OnTooltipSetUnit", function(self)
+-- Dragonflight update: OnTooltipSetUnit is removed from the GameTooltip, and instead has to be written locally then linked.
+-- Self in the parameter list corresponds to the tooltip (so the proper parameters would be (tooltip, data) ).
+local function OnTooltipSetUnit(self, data)
+    -- Only process GameTooltip
+    if not self == GameTooltip then return end
+	
 	-- Don't process if we're in a pet battle
 	if C_PetBattles.IsInBattle() then return end
 
@@ -281,7 +286,10 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 	end
 	GameTooltip:Show()
 
-end) -- HookScript("OnTooltipSetUnit")
+end -- function OnTooltipSetUnit()
+
+-- Hook into the tooltip itself
+TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, OnTooltipSetUnit)
 
 
 --#########################################

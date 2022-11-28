@@ -12,12 +12,14 @@ Second, when a drill rig is completed anywhere in Mechagon, it gives a zonewide 
 
 ![Chat message when a rig is completed](https://raw.githubusercontent.com/KyrosKrane/DrillSergeant/master/Images/Chat_message.png "Chat message")
 
+**Bonus!** When you mouse over a mushroom in Mechagon, it will inform you if it spawns the Fungarian Furor!
+
+![Good Mushroom](https://user-images.githubusercontent.com/458727/204349903-ea762006-491c-4845-b7a7-8cf4adc42ec5.png) ![Bad Mushroom](https://user-images.githubusercontent.com/458727/204349937-9efee5a0-ce49-4d85-8462-9d5017cc0a47.png)
+
 There's no configuration or settings; just install it and go!
 
-**Bonus!** Drill Sergeant will also point out which mushrooms will get you the Fungarian Furor
-
 ## Version Notes
-Version 1 is the first general release.
+Version 1 is the first general release. Version 1.2 is compatible with Dragonflight.
 
 I've tested this add-on in a variety of situations, and it seems to work correctly in all of them. If you encounter any errors, PLEASE open a ticket [here](https://github.com/KyrosKrane/DrillSergeant/issues) including the FULL error message. I also need to know what you were doing when the error happened.
 

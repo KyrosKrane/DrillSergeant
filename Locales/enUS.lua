@@ -18,7 +18,7 @@
 --#########################################
 
 -- Mechagon doesn't exist on WoW Classic, so if a user runs this on Classic, just exit at once.
-if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then return end
+if not WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then return end
 
 -- Get the addon info
 local addonName, Driller = ...

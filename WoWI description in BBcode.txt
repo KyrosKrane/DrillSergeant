@@ -12,10 +12,14 @@ Second, when a drill rig is completed anywhere in Mechagon, it gives a zonewide 
 
 [IMG]https://cdn-wow.mmoui.com/preview/pvw72146.png[/IMG]
 
+Bonus! When you mouse over a mushroom in Mechagon, it will inform you if it spawns the Fungarian Furor!
+
+[IMG]https://cdn-wow.mmoui.com/preview/pvw75477.png[/IMG][IMG]https://cdn-wow.mmoui.com/preview/pvw75478.png[/IMG]
+
 There's no configuration or settings; just install it and go!
 
 [SIZE="5"][B]Version Notes[/B][/SIZE]
-Version 1 is the first general release.
+Version 1 is the first general release. Version 1.2 is compatible with Dragonflight.
 
 I've tested this add-on in a variety of situations, and it seems to work correctly in all of them. If you encounter any errors, PLEASE open a ticket [URL="https://github.com/KyrosKrane/DrillSergeant/issues"]here[/URL] including the FULL error message. I also need to know what you were doing when the error happened.
 

@@ -32,6 +32,10 @@ if not WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then return end
 -- Grab the WoW-defined addon folder name and storage table for our addon
 local addonName, Driller = ...
 
+--@alpha@
+Driller.DebugMode = true
+--@end-alpha@
+
 
 --#########################################
 --# Libraries
@@ -138,7 +142,7 @@ end
 local function OnTooltipSetUnit(self, data)
     -- Only process GameTooltip
     if not self == GameTooltip then return end
-	
+
 	-- Don't process if we're in a pet battle
 	if C_PetBattles.IsInBattle() then return end
 

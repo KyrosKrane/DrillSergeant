@@ -1,8 +1,9 @@
-## Interface: 101000
+## Interface: 100100
 ## Title: Drill Sergeant
 ## Version: @project-version@
 ## Author: KyrosKrane Sylvanblade
 ## Notes: Identifies the rare associated with each drilling project in Mechagon
+## IconTexture: Interface\Icons\Inv_mechagon_junkyardtinkeringcrafting
 
 ## X-Curse-Project-ID: 341287
 ## X-WoWI-ID: 25290

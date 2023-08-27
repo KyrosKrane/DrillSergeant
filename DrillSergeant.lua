@@ -325,12 +325,15 @@ function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 		if Driller.Projects[DrillID] then
 			Driller.Utilities.DebugPrint("mob is >>" .. Driller.Projects[DrillID].Mob .. "<<")
 			local Loc = Driller.Projects[DrillID].Loc.x .. ", " .. Driller.Projects[DrillID].Loc.y
-			Driller.Utilities.DebugPrint("loc is >>" .. Loc .. "<<")
+			Driller.Utilities.DebugPrint("Loc is >>" .. Loc .. "<<")
+
+			local LocWithLink = string.format("|cffffff00|Hworldmap:%s:%s:%s|h[|A:Waypoint-MapPin-ChatIcon:13:13:0:0|a %s]|h|r", MECHAGON_MAPID, Driller.Projects[DrillID].Loc.x * 100, Driller.Projects[DrillID].Loc.y * 100, Loc)
+			Driller.Utilities.DebugPrint("LocWithLink is >>" .. LocWithLink .. "<<")
 
 			-- Found a proper drill message. Notify the user.
 			Driller.Utilities.ChatPrint(L["ABOUT_TO_SPAWN"]:format(
-					Driller.Utilities.CHAT_GREEN .. Driller.Projects[DrillID].Mob .. FONT_COLOR_CODE_CLOSE,
-					Loc
+				Driller.Utilities.CHAT_GREEN .. Driller.Projects[DrillID].Mob .. FONT_COLOR_CODE_CLOSE,
+				LocWithLink
 			))
 		else
 			Driller.Utilities.ChatPrint(L["UNKNOWN_DRILL_ID"]:format(DrillID))

@@ -42,6 +42,7 @@ Driller.DebugMode = true
 --#########################################
 
 local HBD = LibStub("HereBeDragons-2.0")
+local ChatLink = LibStub("ChatLink-1.0")
 
 
 --#########################################

@@ -22,7 +22,7 @@
 -- Mechagon doesn't exist on WoW Classic, so if a user runs this on Classic, just exit at once.
 -- for Classic: local IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 -- For retail: local IsRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
-if not WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then return end
+if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then return end
 
 
 --#########################################

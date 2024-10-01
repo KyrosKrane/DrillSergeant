@@ -35,6 +35,7 @@ local addonName, Driller = ...
 --@alpha@
 Driller.DebugMode = true
 --@end-alpha@
+local DebugPrint = Driller.Utilities.DebugPrint
 
 
 --#########################################
@@ -155,7 +156,7 @@ local function OnTooltipSetUnit(self, data)
 	-- if HBD returns invalid X or Y values (usually because the client is too busy), bail out so we don't throw user errors.
 	if not PlayerX or not PlayerY then return end
 
-	--Driller.Utilities.DebugPrint("PlayerX is " .. (PlayerX or "nil") .. ", PlayerY is " .. (PlayerY or "nil") .. ", PinstanceID is " .. (PinstanceID or "nil"))
+	--DebugPrint("PlayerX is " .. (PlayerX or "nil") .. ", PlayerY is " .. (PlayerY or "nil") .. ", PinstanceID is " .. (PinstanceID or "nil"))
 
 	-- Find out what unit is being moused over
 	local unit = select(2, self:GetUnit())
@@ -163,7 +164,7 @@ local function OnTooltipSetUnit(self, data)
 
 	-- get details on the unit, and make sure it's not a player.
 	local guid = UnitGUID(unit) or ""
-	--Driller.Utilities.DebugPrint("guid is " .. (guid or "nil"))
+	--DebugPrint("guid is " .. (guid or "nil"))
 	-- GUID format
 	-- [Unit type]-0-[server ID]-[instance ID]-[zone UID]-[ID]-[spawn UID]
 	-- (Example: "Creature-0-970-0-11-31146-000136DF91")
@@ -180,28 +181,28 @@ local function OnTooltipSetUnit(self, data)
 		-- "DR-CC61", -- "Gorged Gear-Cruncher"
 		-- "DR-CC73", -- "Caustic Mechaslime"
 		-- "DR-CC88", -- "The Kleptoboss"
-		Driller.Utilities.DebugPrint("In CC block.")
+		DebugPrint("In CC block.")
 
 		-- Find out which mob is closest
 		local RangeToGearCruncher = HBD:GetWorldDistance(PinstanceID, PlayerX, PlayerY, Driller.Projects["DR-CC61"].WorldLoc.x, Driller.Projects["DR-CC61"].WorldLoc.y)
-		Driller.Utilities.DebugPrint("MobX, MobY, RangeToGearCruncher is " .. Driller.Projects["DR-CC61"].WorldLoc.x .. ", " .. Driller.Projects["DR-CC61"].WorldLoc.y .. ", " .. RangeToGearCruncher)
+		DebugPrint("MobX, MobY, RangeToGearCruncher is " .. Driller.Projects["DR-CC61"].WorldLoc.x .. ", " .. Driller.Projects["DR-CC61"].WorldLoc.y .. ", " .. RangeToGearCruncher)
 
 		local RangeToMechaslime = HBD:GetWorldDistance(PinstanceID, PlayerX, PlayerY, Driller.Projects["DR-CC73"].WorldLoc.x, Driller.Projects["DR-CC73"].WorldLoc.y)
-		Driller.Utilities.DebugPrint("MobX, MobY, RangeToMechaslime is " .. Driller.Projects["DR-CC73"].WorldLoc.x .. ", " .. Driller.Projects["DR-CC73"].WorldLoc.y .. ", " .. RangeToMechaslime)
+		DebugPrint("MobX, MobY, RangeToMechaslime is " .. Driller.Projects["DR-CC73"].WorldLoc.x .. ", " .. Driller.Projects["DR-CC73"].WorldLoc.y .. ", " .. RangeToMechaslime)
 
 		local RangeToKleptoboss = HBD:GetWorldDistance(PinstanceID, PlayerX, PlayerY, Driller.Projects["DR-CC88"].WorldLoc.x, Driller.Projects["DR-CC88"].WorldLoc.y)
-		Driller.Utilities.DebugPrint("MobX, MobY, RangeToKleptoboss is " .. Driller.Projects["DR-CC88"].WorldLoc.x .. ", " .. Driller.Projects["DR-CC88"].WorldLoc.y .. ", " .. RangeToKleptoboss)
+		DebugPrint("MobX, MobY, RangeToKleptoboss is " .. Driller.Projects["DR-CC88"].WorldLoc.x .. ", " .. Driller.Projects["DR-CC88"].WorldLoc.y .. ", " .. RangeToKleptoboss)
 
 		if RangeToGearCruncher <= RangeToMechaslime and RangeToGearCruncher <= RangeToKleptoboss then
-			Driller.Utilities.DebugPrint("Picking DR-CC61 Gorged Gear-Cruncher")
+			DebugPrint("Picking DR-CC61 Gorged Gear-Cruncher")
 			ProjectID = "DR-CC61" -- "Gorged Gear-Cruncher"
 			if RangeToGearCruncher >= MAX_RANGE_FOR_ID then InRange = false end
 		elseif RangeToMechaslime <= RangeToGearCruncher and RangeToMechaslime <= RangeToKleptoboss then
-			Driller.Utilities.DebugPrint("Picking DR-CC73 Caustic Mechaslime")
+			DebugPrint("Picking DR-CC73 Caustic Mechaslime")
 			ProjectID = "DR-CC73" -- "Caustic Mechaslime"
 			if RangeToMechaslime >= MAX_RANGE_FOR_ID then InRange = false end
 		else
-			Driller.Utilities.DebugPrint("Picking DR-CC88 Kleptoboss")
+			DebugPrint("Picking DR-CC88 Kleptoboss")
 			ProjectID = "DR-CC88" -- "Kleptoboss"
 			if RangeToKleptoboss >= MAX_RANGE_FOR_ID then InRange = false end
 		end
@@ -210,21 +211,21 @@ local function OnTooltipSetUnit(self, data)
 		-- could be:
 		-- "DR-JD41", -- "Boilburn"
 		-- "DR-JD99", -- "Gemicide"
-		Driller.Utilities.DebugPrint("In JD block.")
+		DebugPrint("In JD block.")
 
 		-- Find out which is closer
 		local RangeToBoilburn = HBD:GetWorldDistance(MECHAGON_MAPID, PlayerX, PlayerY, Driller.Projects["DR-JD41"].WorldLoc.x, Driller.Projects["DR-JD41"].WorldLoc.y)
-		Driller.Utilities.DebugPrint("MobX, MobY, RangeToBoilburn is " .. Driller.Projects["DR-JD41"].WorldLoc.x .. ", " .. Driller.Projects["DR-JD41"].WorldLoc.y .. ", " .. RangeToBoilburn)
+		DebugPrint("MobX, MobY, RangeToBoilburn is " .. Driller.Projects["DR-JD41"].WorldLoc.x .. ", " .. Driller.Projects["DR-JD41"].WorldLoc.y .. ", " .. RangeToBoilburn)
 
 		local RangeToGemicide = HBD:GetWorldDistance(MECHAGON_MAPID, PlayerX, PlayerY, Driller.Projects["DR-JD99"].WorldLoc.x, Driller.Projects["DR-JD99"].WorldLoc.y)
-		Driller.Utilities.DebugPrint("MobX, MobY, RangeToGemicide is " .. Driller.Projects["DR-JD99"].WorldLoc.x .. ", " .. Driller.Projects["DR-JD99"].WorldLoc.y .. ", " .. RangeToGemicide)
+		DebugPrint("MobX, MobY, RangeToGemicide is " .. Driller.Projects["DR-JD99"].WorldLoc.x .. ", " .. Driller.Projects["DR-JD99"].WorldLoc.y .. ", " .. RangeToGemicide)
 
 		if RangeToBoilburn < RangeToGemicide then
-			Driller.Utilities.DebugPrint("Picking DR-JD41 Boilburn")
+			DebugPrint("Picking DR-JD41 Boilburn")
 			ProjectID = "DR-JD41" -- "Boilburn"
 			if RangeToBoilburn >= MAX_RANGE_FOR_ID then InRange = false end
 		else
-			Driller.Utilities.DebugPrint("Picking DR-JD99 Gemicide")
+			DebugPrint("Picking DR-JD99 Gemicide")
 			ProjectID = "DR-JD99" -- "Gemicide"
 			if RangeToGemicide >= MAX_RANGE_FOR_ID then InRange = false end
 		end
@@ -233,47 +234,47 @@ local function OnTooltipSetUnit(self, data)
 		-- could be:
 		-- "DR-TR28", -- "Ol' Big Tusk"
 		-- "DR-TR35", -- "Earthbreaker Gulroc"
-		Driller.Utilities.DebugPrint("In TR block.")
+		DebugPrint("In TR block.")
 
 		-- Find out which is closer
 		local RangeToBigTusk = HBD:GetWorldDistance(MECHAGON_MAPID, PlayerX, PlayerY, Driller.Projects["DR-TR28"].WorldLoc.x, Driller.Projects["DR-TR28"].WorldLoc.y)
-		Driller.Utilities.DebugPrint("MobX, MobY, RangeToBigTusk is " .. Driller.Projects["DR-TR28"].WorldLoc.x .. ", " .. Driller.Projects["DR-TR28"].WorldLoc.y .. ", " .. RangeToBigTusk)
+		DebugPrint("MobX, MobY, RangeToBigTusk is " .. Driller.Projects["DR-TR28"].WorldLoc.x .. ", " .. Driller.Projects["DR-TR28"].WorldLoc.y .. ", " .. RangeToBigTusk)
 
 		local RangeToGulroc = HBD:GetWorldDistance(MECHAGON_MAPID, PlayerX, PlayerY, Driller.Projects["DR-TR35"].WorldLoc.x, Driller.Projects["DR-TR35"].WorldLoc.y)
-		Driller.Utilities.DebugPrint("MobX, MobY, RangeToGulroc is " .. Driller.Projects["DR-TR35"].WorldLoc.x .. ", " .. Driller.Projects["DR-TR35"].WorldLoc.y .. ", " .. RangeToGulroc)
+		DebugPrint("MobX, MobY, RangeToGulroc is " .. Driller.Projects["DR-TR35"].WorldLoc.x .. ", " .. Driller.Projects["DR-TR35"].WorldLoc.y .. ", " .. RangeToGulroc)
 
 		if RangeToBigTusk < RangeToGulroc then
-			Driller.Utilities.DebugPrint("Picking DR-TR28 Ol' Big Tusk")
+			DebugPrint("Picking DR-TR28 Ol' Big Tusk")
 			ProjectID = "DR-TR28" -- "Ol' Big Tusk"
 			if RangeToBigTusk >= MAX_RANGE_FOR_ID then InRange = false end
 		else
-			Driller.Utilities.DebugPrint("Picking DR-TR35 Earthbreaker Gulroc")
+			DebugPrint("Picking DR-TR35 Earthbreaker Gulroc")
 			ProjectID = "DR-TR35" -- "Earthbreaker Gulroc"
 			if RangeToGulroc >= MAX_RANGE_FOR_ID then InRange = false end
 		end
 
 	elseif 135497 == NPCID then
 		-- real mushroom that spawns Fungarian Furor
-		--Driller.Utilities.DebugPrint("Found real mushroom.")
+		--DebugPrint("Found real mushroom.")
 		Driller:AddTooltipLine(L["FUROR"]:format(Driller.Utilities.CHAT_GREEN .. L["Fungarian Furor"] .. FONT_COLOR_CODE_CLOSE))
 		return
 
 	elseif 151893 == NPCID then
 		-- fake mushroom that spawns random trash
-		--Driller.Utilities.DebugPrint("Found fake mushroom.")
+		--DebugPrint("Found fake mushroom.")
 		Driller:AddTooltipLine(L["NOT_FUROR"]:format(Driller.Utilities.CHAT_RED .. L["Fungarian Furor"] .. FONT_COLOR_CODE_CLOSE))
 		return
 
 	else
 		-- not a tracked ID
-		--Driller.Utilities.DebugPrint("Not a tracked NPC.")
+		--DebugPrint("Not a tracked NPC.")
 		return
 	end
 
 	-- Make sure we got a valid project. If somehow we didn't, bail out.
 	if not ProjectID then return end
 
-	Driller.Utilities.DebugPrint("NPCID is " .. NPCID ..", ProjectID is " .. ProjectID)
+	DebugPrint("NPCID is " .. NPCID ..", ProjectID is " .. ProjectID)
 
 	-- Convert to a usable project object to get the mob name.
 	local Project = Driller.Projects[ProjectID]
@@ -282,7 +283,7 @@ local function OnTooltipSetUnit(self, data)
 		return
 	end
 
-	Driller.Utilities.DebugPrint("match found in MobIDs: " .. Project.Mob)
+	DebugPrint("match found in MobIDs: " .. Project.Mob)
 	if InRange then
 		Driller:AddTooltipLine(L["OPENS_A_PATH"]:format(ProjectID, Driller.Utilities.CHAT_GREEN .. Project.Mob .. FONT_COLOR_CODE_CLOSE))
 	else
@@ -308,27 +309,27 @@ function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 	if not Map or not MECHAGON_SUB_MAP_IDS[Map] then return end
 
 	local message, sender = ...
-	Driller.Utilities.DebugPrint("Got CHAT_MSG_MONSTER_EMOTE")
-	Driller.Utilities.DebugPrint("message is >>" .. message .. "<<")
-	Driller.Utilities.DebugPrint("sender is >>" .. sender .. "<<")
+	DebugPrint("Got CHAT_MSG_MONSTER_EMOTE")
+	DebugPrint("message is >>" .. message .. "<<")
+	DebugPrint("sender is >>" .. sender .. "<<")
 
 	-- Parse the message to see whether it is a drill rig announcement.
 	local DrillID = string.match(message, L["DRILL_RIG_MSG_CAPTURE"])
 
 	if DrillID then
-		Driller.Utilities.DebugPrint("Identified localized language DrillID " .. DrillID)
+		DebugPrint("Identified localized language DrillID " .. DrillID)
 
 		-- Convert the Drill ID from its localized version to English
 		DrillID = DrillRigInEnglish[DrillID]
-		Driller.Utilities.DebugPrint("Converted DrillID to English: " .. DrillID)
+		DebugPrint("Converted DrillID to English: " .. DrillID)
 
 		if Driller.Projects[DrillID] then
-			Driller.Utilities.DebugPrint("mob is >>" .. Driller.Projects[DrillID].Mob .. "<<")
+			DebugPrint("mob is >>" .. Driller.Projects[DrillID].Mob .. "<<")
 			local Loc = Driller.Projects[DrillID].Loc.x .. ", " .. Driller.Projects[DrillID].Loc.y
-			Driller.Utilities.DebugPrint("Loc is >>" .. Loc .. "<<")
+			DebugPrint("Loc is >>" .. Loc .. "<<")
 
 			local LocWithLink = string.format("|cffffff00|Hworldmap:%s:%s:%s|h[|A:Waypoint-MapPin-ChatIcon:13:13:0:0|a %s]|h|r", MECHAGON_MAPID, Driller.Projects[DrillID].Loc.x * 100, Driller.Projects[DrillID].Loc.y * 100, Loc)
-			Driller.Utilities.DebugPrint("LocWithLink is >>" .. LocWithLink .. "<<")
+			DebugPrint("LocWithLink is >>" .. LocWithLink .. "<<")
 
 			-- Found a proper drill message. Notify the user.
 			Driller.Utilities.ChatPrint(L["ABOUT_TO_SPAWN"]:format(
@@ -339,7 +340,7 @@ function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 			Driller.Utilities.ChatPrint(L["UNKNOWN_DRILL_ID"]:format(DrillID))
 		end
 	else
-		Driller.Utilities.DebugPrint("Not a drill message.")
+		DebugPrint("Not a drill message.")
 	end
 end -- Driller.Events:CHAT_MSG_MONSTER_EMOTE()
 
@@ -355,7 +356,7 @@ end)
 
 -- Register all events for which handlers have been defined
 for k, v in pairs(Driller.Events) do
-	Driller.Utilities.DebugPrint("Registering event " .. k)
+	DebugPrint("Registering event " .. k)
 	Driller.Frame:RegisterEvent(k)
 end
 

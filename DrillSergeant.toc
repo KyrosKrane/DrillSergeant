@@ -4,6 +4,9 @@
 ## Author: KyrosKrane Sylvanblade
 ## Notes: Identifies the rare associated with each drilling project in Mechagon
 ## IconTexture: Interface\Icons\Inv_mechagon_junkyardtinkeringcrafting
+## OptionalDeps: TomTom
+
+## SavedVariables: DrillSergeant_DB
 
 ## X-Curse-Project-ID: 341287
 ## X-WoWI-ID: 25290

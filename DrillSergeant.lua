@@ -1,6 +1,6 @@
 -- DrillSergeant.lua
 -- Written by KyrosKrane Sylvanblade (kyros@kyros.info)
--- Copyright (c) 2019-2022 KyrosKrane Sylvanblade
+-- Copyright (c) 2019-2024 KyrosKrane Sylvanblade
 -- Licensed under the MIT License, as per the included file.
 
 -- File revision: @file-abbreviated-hash@
@@ -126,6 +126,73 @@ end
 
 
 --#########################################
+--# Waypoint link creation and click handling
+--#########################################
+
+-- Creates a clickable chat link based on the selected game mode.
+-- map is the MapID
+-- X and Y should be 0.00-100.00
+-- Name is the name of the thing the waypoint is pointing to (only relevant for TomTom)
+local function CreateWaypointLink(map, x, y, name)
+	DebugPrint("In CreateWaypointLink")
+
+	local DisplayLoc = x .. ", " .. y
+	DebugPrint("DisplayLoc is >>" .. DisplayLoc .. "<<")
+	local LocWithLink
+
+	if "TomTom" == Driller.mode then
+		DebugPrint("TomTom mode detected")
+
+		LocWithLink = string.format("|cffffff00|Haddon:" .. addonName .. ":%s:%s:%s:%s|h[|A:bags-greenarrow:22:22|a%s]|h|r", map, x, y, name, DisplayLoc)
+		DebugPrint("LocWithLink is >>" .. LocWithLink .. "<<")
+
+	else
+		DebugPrint("WoW mode detected")
+
+		-- WoW links expect x and y to be 0-10000.
+		LocWithLink = string.format("|cffffff00|Hworldmap:%s:%s:%s|h[|A:Waypoint-MapPin-ChatIcon:13:13:0:0|a %s]|h|r", map, x * 100, y * 100, DisplayLoc)
+		DebugPrint("LocWithLink is >>" .. LocWithLink .. "<<")
+	end
+
+	return LocWithLink
+end -- CreateWaypointLink()
+
+
+-- Chat link click handling - only required for TomTom
+local function HandleClickCallback(event, link, text, button, chatFrame)
+	local linkType, linkAddonName, mapID, x, y, name = strsplit(":", link)
+	--DebugPrint("Received callback for SetItemRef, linktype is ", linkType, ", linkAddonName is ", linkAddonName)
+
+	-- Make sure it's our link, otherwise bail
+	if linkType ~= "addon" or linkAddonName ~= addonName then return end
+
+	-- HereBeDragons type-checks its parameters to be numbers, so coerce them to the right type.
+	-- Both TomTom and WoW expect x and y to be 0-1, not 0-100
+	mapID = 0 + mapID
+	x = x / 100
+	y = y / 100
+
+	DebugPrint(format("DS link detected. mapID = %s, x = %s, y = %s, name = %s", mapID, x, y, name))
+
+	if Driller.mode == "TomTom" then
+		DebugPrint("Dispatching TomTom")
+		TomTom:SetCustomWaypoint(mapID, x, y, { title = name, from = Driller.USER_ADDON_NAME })
+	else
+		-- This is an odd situation. The user has TomTom loaded and configued in DS, and a mob spawned, causing a link to be displayed. The user then swapped their config to WoW waypoints and clicked the link.
+		-- So, we manually show the WoW link.
+		DebugPrint("Dispatching WoW")
+		local mappoint = UiMapPoint.CreateFromCoordinates(mapID, x, y)
+		C_Map.SetUserWaypoint(mappoint)
+		C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+	end
+
+end -- HandleClickCallback()
+
+EventRegistry:RegisterCallback("SetItemRef", HandleClickCallback)
+
+
+
+--#########################################
 --# Tooltip detection and management
 --#########################################
 
@@ -141,8 +208,8 @@ end
 -- Dragonflight update: OnTooltipSetUnit is removed from the GameTooltip, and instead has to be written locally then linked.
 -- Self in the parameter list corresponds to the tooltip (so the proper parameters would be (tooltip, data) ).
 local function OnTooltipSetUnit(self, data)
-    -- Only process GameTooltip
-    if not self == GameTooltip then return end
+	-- Only process GameTooltip
+	if not self == GameTooltip then return end
 
 	-- Don't process if we're in a pet battle
 	if C_PetBattles.IsInBattle() then return end
@@ -173,7 +240,7 @@ local function OnTooltipSetUnit(self, data)
 	local IsPlayer = guid:match("%a+") == "Player"
 	if IsPlayer or not NPCID then return end
 
-	local ProjectID  -- used to identify the right project
+	local ProjectID -- used to identify the right project
 	local InRange = true -- is the mob in ID range?
 
 	if 154695 == NPCID then
@@ -297,9 +364,33 @@ end -- function OnTooltipSetUnit()
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, OnTooltipSetUnit)
 
 
+
+
 --#########################################
 --# Events to register and handle
 --#########################################
+
+-- Handle login and initialization stuff.
+function Driller.Events:PLAYER_LOGIN(...)
+
+	-- Initialize saved variables
+	if not DrillSergeant_DB then DrillSergeant_DB = {} end
+	if not DrillSergeant_DB.mode then
+		if TomTom then
+			DrillSergeant_DB.mode = "TomTom"
+		else
+			DrillSergeant_DB.mode = "WoW"
+		end
+	end
+
+	-- Determine waypoint mode
+	if "TomTom" == DrillSergeant_DB.mode and TomTom then
+		Driller.mode = "TomTom"
+	else
+		Driller.mode = "WoW"
+	end
+end -- Driller.Events:PLAYER_LOGIN()
+
 
 -- This triggers when an NPC gives an emote.
 function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
@@ -314,24 +405,22 @@ function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 	DebugPrint("sender is >>" .. sender .. "<<")
 
 	-- Parse the message to see whether it is a drill rig announcement.
-	local DrillID = string.match(message, L["DRILL_RIG_MSG_CAPTURE"])
+	local LocalizedDrillID = string.match(message, L["DRILL_RIG_MSG_CAPTURE"])
 
-	if DrillID then
-		DebugPrint("Identified localized language DrillID " .. DrillID)
+	if LocalizedDrillID then
+		DebugPrint("Identified localized language DrillID " .. LocalizedDrillID)
 
 		-- Convert the Drill ID from its localized version to English
-		DrillID = DrillRigInEnglish[DrillID]
+		local DrillID = DrillRigInEnglish[LocalizedDrillID]
 		DebugPrint("Converted DrillID to English: " .. DrillID)
 
 		if Driller.Projects[DrillID] then
-			DebugPrint("mob is >>" .. Driller.Projects[DrillID].Mob .. "<<")
-			local Loc = Driller.Projects[DrillID].Loc.x .. ", " .. Driller.Projects[DrillID].Loc.y
-			DebugPrint("Loc is >>" .. Loc .. "<<")
-
-			local LocWithLink = string.format("|cffffff00|Hworldmap:%s:%s:%s|h[|A:Waypoint-MapPin-ChatIcon:13:13:0:0|a %s]|h|r", MECHAGON_MAPID, Driller.Projects[DrillID].Loc.x * 100, Driller.Projects[DrillID].Loc.y * 100, Loc)
-			DebugPrint("LocWithLink is >>" .. LocWithLink .. "<<")
-
 			-- Found a proper drill message. Notify the user.
+			DebugPrint("mob is >>" .. Driller.Projects[DrillID].Mob .. "<<")
+
+			local LocWithLink = CreateWaypointLink(MECHAGON_MAPID, Driller.Projects[DrillID].Loc.x, Driller.Projects[DrillID].Loc.y, LocalizedDrillID)
+
+			-- Print the notification with the link.
 			Driller.Utilities.ChatPrint(L["ABOUT_TO_SPAWN"]:format(
 				Driller.Utilities.CHAT_GREEN .. Driller.Projects[DrillID].Mob .. FONT_COLOR_CODE_CLOSE,
 				LocWithLink
@@ -343,6 +432,7 @@ function Driller.Events:CHAT_MSG_MONSTER_EMOTE(...)
 		DebugPrint("Not a drill message.")
 	end
 end -- Driller.Events:CHAT_MSG_MONSTER_EMOTE()
+
 
 
 --#########################################
@@ -362,8 +452,20 @@ end
 
 
 --#########################################
---# Create command line for debug mode toggling
+--# Create command line handler
 --#########################################
+
+local function PrintWaypointStatus()
+	local ModeName
+
+	if "TomTom" == Driller.mode then
+		ModeName = L["TomTom's crazy arrow"]
+	else
+		ModeName = L["WoW's waypoints"]
+	end
+	Driller.Utilities.ChatPrint(L["LINK_FORMAT_CONFIRMATION"]:format(ModeName))
+end -- PrintWaypointStatus()
+
 
 -- Toggle debug mode if asked
 function Driller.CommandLine(arg, ...)
@@ -375,12 +477,45 @@ function Driller.CommandLine(arg, ...)
 		else
 			Driller.Utilities.ChatPrint("Debug mode is now " .. Driller.Utilities.CHAT_RED .. "off" .. FONT_COLOR_CODE_CLOSE .. ".")
 		end
-	else
+
+	elseif "PRINTLINK" == arg:upper() then
+		local LocWithLink = CreateWaypointLink(MECHAGON_MAPID, 68.4, 48.1, "Fake Kleptoboss")
+		DebugPrint("Raw link: " .. LocWithLink:gsub("|", "||"))
+
+		-- Print the notification with the link.
+		Driller.Utilities.ChatPrint(L["ABOUT_TO_SPAWN"]:format(
+			Driller.Utilities.CHAT_GREEN .. "Fake Kleptoboss" .. FONT_COLOR_CODE_CLOSE,
+			LocWithLink
+		))
+
+	-- Enable TomTom support
+	elseif "TOMTOM" == arg:upper() then
+		if TomTom then
+			DrillSergeant_DB.mode = "TomTom"
+			Driller.mode = "TomTom"
+			PrintWaypointStatus()
+		else
+			Driller.Utilities.ChatPrint("TomTom is not loaded, so it cannot be used.")
+			PrintWaypointStatus()
+		end
+
+	-- enable WoW waypoint support
+	elseif "WOW" == arg:upper() then
+		DrillSergeant_DB.mode = "WoW"
+		Driller.mode = "WoW"
+		PrintWaypointStatus()
+
+	-- Unknown argument
+	elseif arg and arg ~= "" then
 		Driller.Utilities.ChatPrint("Unrecognized command: " .. arg)
+
+	-- If no argument, just print status
+	else
+		PrintWaypointStatus()
 	end
 end -- Driller.CommandLine()
 
 
 -- Set the default slash command.
-SLASH_DRILLER1 = "/driller"
-SlashCmdList.DRILLER = function (...) Driller.CommandLine(...) end
+SLASH_DRILL1 = "/drill"
+SlashCmdList.DRILL = function (...) Driller.CommandLine(...) end

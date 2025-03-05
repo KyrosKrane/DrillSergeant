@@ -1,19 +1,33 @@
-## Interface: 110007
+# File revision: @file-abbreviated-hash@
+# File last updated: @file-date-iso@
+
+## Interface: 110100
 ## Title: Drill Sergeant
 ## Version: @project-version@
 ## Author: KyrosKrane Sylvanblade
 ## Notes: Identifies the rare associated with each drilling project in Mechagon
 ## IconTexture: Interface\Icons\Inv_mechagon_junkyardtinkeringcrafting
-## OptionalDeps: TomTom
 
 ## SavedVariables: DrillSergeant_DB
+
+## OptionalDeps: TomTom
 
 ## X-Curse-Project-ID: 341287
 ## X-WoWI-ID: 25290
 ## X-Wago-ID: WL6J1jNv
 
-# File revision: @file-abbreviated-hash@
-# File last updated: @file-date-iso@
+## Category: Expansion Features
+## Category-enUS: Expansion Features
+## Category-deDE: Erweiterungsfeatures
+## Category-esES: Características
+## Category-esMX: Características de expansiones
+## Category-frFR: Contenu d’extension
+## Category-itIT: Contenuti specifici
+## Category-koKR: 확장팩 특징
+## Category-ptBR: Características da Expansão
+## Category-ruRU: Особый контент
+## Category-zhCN: 特色更新
+## Category-zhTW: 資料片特色
 
 # Linked from externals
 Libs\LibStub\LibStub.lua

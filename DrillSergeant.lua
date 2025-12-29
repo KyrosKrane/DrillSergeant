@@ -375,7 +375,7 @@ function Driller.Events:PLAYER_LOGIN(...)
 
 	-- Initialize saved variables
 	if not DrillSergeant_DB then DrillSergeant_DB = {} end
-	if not DrillSergeant_DB.mode then
+	if not DrillSergeant_DB.user_set then
 		if TomTom then
 			DrillSergeant_DB.mode = "TomTom"
 		else
@@ -492,6 +492,7 @@ function Driller.CommandLine(arg, ...)
 	elseif "TOMTOM" == arg:upper() then
 		if TomTom then
 			DrillSergeant_DB.mode = "TomTom"
+			DrillSergeant_DB.user_set = "true"
 			Driller.mode = "TomTom"
 			PrintWaypointStatus()
 		else
@@ -502,6 +503,7 @@ function Driller.CommandLine(arg, ...)
 	-- enable WoW waypoint support
 	elseif "WOW" == arg:upper() then
 		DrillSergeant_DB.mode = "WoW"
+		DrillSergeant_DB.user_set = "true"
 		Driller.mode = "WoW"
 		PrintWaypointStatus()
 

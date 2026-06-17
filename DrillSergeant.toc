@@ -1,12 +1,12 @@
-# File revision: @file-abbreviated-hash@
-# File last updated: @file-date-iso@
-
 ## Interface: @toc-version-retail@
 ## Title: Drill Sergeant
 ## Version: @project-version@
 ## Author: KyrosKrane Sylvanblade
 ## Notes: Identifies the rare associated with each drilling project in Mechagon
 ## IconTexture: Interface\Icons\Inv_mechagon_junkyardtinkeringcrafting
+
+# File revision: @file-abbreviated-hash@
+# File last updated: @file-date-iso@
 
 ## SavedVariables: DrillSergeant_DB
 
